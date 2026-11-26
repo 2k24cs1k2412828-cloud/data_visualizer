@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusEDA — Professional Exploratory Data Analysis & Visual Intelligence</title>
+  <!-- Google Fonts, Tailwind CSS, Lucide Icons & Chart.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen selection:bg-blue-100 selection:text-blue-900 antialiased font-sans flex flex-col">
+
+  <!-- TOP EXECUTIVE HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight text-slate-900">Nexus<span class="text-blue-600">EDA</span></span>
+            <span class="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700">Enterprise Suite</span>
+          </div>
+          <p class="text-[12px] text-slate-500 font-normal">Pre-Modeling Data Audit & 10 Exploratory Visualizations</p>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="flex items-center space-x-3">
+        
+        <!-- Active File Indicator -->
+        <div id="activeFileBadge" class="hidden items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+          <span id="activeFileName" class="text-slate-700 font-semibold max-w-[150px] truncate">dataset.csv</span>
+          <span id="activeFileShape" class="text-blue-600 font-bold bg-white px-1.5 py-0.5 rounded border border-slate-200">0 × 0</span>
+        </div>
+
+        <!-- Sample Datasets Dropdown -->
+        <div class="relative">
+          <button id="sampleDatasetsBtn" class="flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-300 shadow-sm transition">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>Load Sample Dataset</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+          </button>
+          <div id="sampleMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-xl p-1.5 z-50">
+            <div class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Benchmark Datasets</div>
+            <button onclick="loadSample('customer_churn')" class="w-full text-left flex items-start space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-100 text-xs text-slate-800 transition">
+              <i data-lucide="users" class="w-4 h-4 text-blue-600 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-slate-900">Customer Churn</div>
+                <div class="text-[11px] text-slate-500">Classification • Outliers • Churn column</div>
+              </div>
+            </button>
+            <button onclick="loadSample('housing_prices')" class="w-full text-left flex items-start space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-100 text-xs text-slate-800 transition">
+              <i data-lucide="home" class="w-4 h-4 text-emerald-600 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-slate-900">Housing Valuation</div>
+                <div class="text-[11px] text-slate-500">Regression • Prices • Correlation</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Upload CSV Button -->
+        <button onclick="document.getElementById('fileUploadInput').click()" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition active:scale-95">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+          <span>Upload CSV File</span>
+        </button>
+        <input type="file" id="fileUploadInput" accept=".csv" class="hidden">
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- INITIAL EMPTY STATE (BEFORE DATA UPLOAD) -->
+    <section id="heroUploadState" class="my-8">
+      
+      <!-- Intro Banner -->
+      <div class="text-center max-w-2xl mx-auto mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+          Automated Data Profiler & Visualization Engine
+        </h1>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Upload any CSV to automatically audit dataset dimensions, null values, data types, duplicate records, outliers, target distribution, and leakage risks — paired with 10 interactive exploratory charts.
+        </p>
+      </div>
+
+      <!-- Clean Light Drag & Drop Card -->
+      <div id="dropZone" class="max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-slate-300 bg-white hover:border-blue-500 hover:bg-blue-50/30 transition duration-200 p-10 text-center cursor-pointer shadow-sm group">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 group-hover:scale-105 transition">
+          <i data-lucide="file-up" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-800 mb-1">Upload your CSV dataset</h3>
+        <p class="text-xs text-slate-500 mb-5">Click to browse or drag and drop your file here</p>
+        <button type="button" class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-800 border border-slate-300 transition">
+          <i data-lucide="folder" class="w-4 h-4 text-blue-600"></i>
+          <span>Select File</span>
+        </button>
+      </div>
+
+      <!-- Feature Badges -->
+      <div class="max-w-3xl mx-auto mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+          <div class="flex items-center space-x-2 text-slate-900 font-bold text-xs mb-1">
+            <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+            <span>Part 1: 10 Core Investigations</span>
+          </div>
+          <p class="text-[12px] text-slate-500 leading-normal">
+            Shape, Data Types, Missing Values, Duplicates, 5-Number Stats, Cardinality, Target Distribution, Outlier Bounds, Feature Correlations, and Data Quality/Leakage.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+          <div class="flex items-center space-x-2 text-slate-900 font-bold text-xs mb-1">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i>
+            <span>Part 2: 10 Exploratory Visualizations</span>
+          </div>
+          <p class="text-[12px] text-slate-500 leading-normal">
+            Missing Heatmap, Histograms, Box Plots, Count Plots, Correlation Heatmap, Scatter Plots, Target Distribution, Pair Plots, Feature vs Target, and Time-Series.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ACTIVE DASHBOARD (VISIBLE ONCE DATA LOADED) -->
+    <section id="dashboardState" class="hidden space-y-6">
+
+      <!-- TOP CONTROL & NAVIGATION BAR -->
+      <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Target Column Selector -->
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-200">
+            <i data-lucide="crosshair" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Target Column for ML</div>
+            <div class="flex items-center space-x-2 mt-0.5">
+              <select id="targetSelect" onchange="onTargetChanged()" class="bg-slate-50 text-slate-800 font-medium text-xs rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-blue-500">
+                <!-- Injected options -->
+              </select>
+              <span id="targetTaskBadge" class="text-xs px-2.5 py-0.5 rounded-full font-mono font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">Classification</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Navigation Tabs -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button id="tabBtnInvestigations" onclick="switchMainTab('investigations')" class="px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-2 bg-white text-blue-600 shadow-sm border border-slate-200/80">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Part 1: 10 Investigations</span>
+          </button>
+          <button id="tabBtnVisualizations" onclick="switchMainTab('visualizations')" class="px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+            <i data-lucide="bar-chart" class="w-4 h-4"></i>
+            <span>Part 2: 10 Visualizations</span>
+          </button>
+          <button id="tabBtnRawData" onclick="switchMainTab('rawdata')" class="px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+            <i data-lucide="table" class="w-4 h-4"></i>
+            <span>Raw Data Table</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 1: 10 INVESTIGATIONS VIEW -->
+      <!-- ========================================================= -->
+      <div id="tabContentInvestigations" class="space-y-6">
+
+        <!-- Top 4 Metric KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-semibold uppercase tracking-wider">1. Dataset Shape</span>
+              <i data-lucide="layout-grid" class="w-4 h-4 text-blue-600"></i>
+            </div>
+            <div id="cardShapeVal" class="text-2xl font-bold text-slate-900 font-mono">0 × 0</div>
+            <div id="cardShapeSub" class="text-xs text-slate-500 mt-1">Scale of dataset</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-semibold uppercase tracking-wider">3. Missing Values</span>
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-500"></i>
+            </div>
+            <div id="cardMissingVal" class="text-2xl font-bold text-slate-900 font-mono">0%</div>
+            <div id="cardMissingSub" class="text-xs text-slate-500 mt-1">0 missing cells</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-semibold uppercase tracking-wider">4. Duplicate Rows</span>
+              <i data-lucide="copy" class="w-4 h-4 text-rose-500"></i>
+            </div>
+            <div id="cardDupVal" class="text-2xl font-bold text-slate-900 font-mono">0</div>
+            <div id="cardDupSub" class="text-xs text-slate-500 mt-1">Exact duplicates found</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-semibold uppercase tracking-wider">10. Quality Score</span>
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div id="cardQualityVal" class="text-2xl font-bold text-emerald-600 font-mono">100/100</div>
+            <div id="cardQualitySub" class="text-xs text-slate-500 mt-1">Hygiene & leakage audit</div>
+          </div>
+
+        </div>
+
+        <!-- DETAILED 10 INVESTIGATIONS CARDS -->
+        <div class="space-y-4">
+
+          <!-- 1. DATASET SHAPE -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">1</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Dataset Shape</h3>
+                  <p class="text-xs text-slate-500">Number of rows, columns, matrix cells, and memory scale</p>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded bg-blue-50 text-blue-700 font-mono font-medium border border-blue-200">Scale Metrics</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4" id="invShapeContent"></div>
+          </div>
+
+          <!-- 2. DATA TYPES -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">2</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Data Types Breakdown</h3>
+                  <p class="text-xs text-slate-500">Numerical, categorical, datetime, text, boolean for preprocessing decisions</p>
+                </div>
+              </div>
+              <div id="dtypeSummaryPills" class="flex items-center space-x-2 text-xs font-mono"></div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs table-executive">
+                <thead>
+                  <tr>
+                    <th class="px-5 py-3">Feature Name</th>
+                    <th class="px-5 py-3">Inferred Type</th>
+                    <th class="px-5 py-3">Preprocessing Strategy</th>
+                    <th class="px-5 py-3">Model Compatibility</th>
+                  </tr>
+                </thead>
+                <tbody id="dtypeTableBody" class="divide-y divide-slate-100 text-slate-700 font-sans"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. MISSING VALUES -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-800 font-mono font-bold text-xs flex items-center justify-center">3</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Missing Values Audit</h3>
+                  <p class="text-xs text-slate-500">Count and percentage of nulls in each feature</p>
+                </div>
+              </div>
+              <span id="missingBadgeTotal" class="text-xs px-2.5 py-1 rounded bg-amber-50 text-amber-800 font-mono font-semibold border border-amber-200">0% Nulls</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs table-executive">
+                <thead>
+                  <tr>
+                    <th class="px-5 py-3">Column</th>
+                    <th class="px-5 py-3">Missing Rows</th>
+                    <th class="px-5 py-3">Missing %</th>
+                    <th class="px-5 py-3">Visual Proportion</th>
+                    <th class="px-5 py-3">Imputation Decision</th>
+                  </tr>
+                </thead>
+                <tbody id="missingTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. DUPLICATE RECORDS -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-800 font-mono font-bold text-xs flex items-center justify-center">4</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Duplicate Records</h3>
+                  <p class="text-xs text-slate-500">Exact and partial duplicate rows to prevent train-test leakage</p>
+                </div>
+              </div>
+              <span id="dupStatusBadge" class="text-xs px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 font-mono font-semibold border border-emerald-200">No Duplicates</span>
+            </div>
+            <div class="p-5 flex flex-col md:flex-row gap-4" id="dupContentBox"></div>
+          </div>
+
+          <!-- 5. STATISTICAL SUMMARY -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">5</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Statistical Summary</h3>
+                  <p class="text-xs text-slate-500">Mean, median, std, min, max, quartiles (Q1, Q3), IQR, and skewness</p>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-mono font-medium border border-slate-200">5-Number Summary</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs table-executive font-mono">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-3 font-sans">Feature</th>
+                    <th class="px-3 py-3">Count</th>
+                    <th class="px-3 py-3">Mean</th>
+                    <th class="px-3 py-3">Std Dev</th>
+                    <th class="px-3 py-3">Min</th>
+                    <th class="px-3 py-3">Q1 (25%)</th>
+                    <th class="px-3 py-3">Median</th>
+                    <th class="px-3 py-3">Q3 (75%)</th>
+                    <th class="px-3 py-3">Max</th>
+                    <th class="px-3 py-3">IQR</th>
+                    <th class="px-3 py-3">Skew</th>
+                  </tr>
+                </thead>
+                <tbody id="statsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 6. UNIQUE VALUES / CARDINALITY -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-purple-100 text-purple-800 font-mono font-bold text-xs flex items-center justify-center">6</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Unique Values / Cardinality</h3>
+                  <p class="text-xs text-slate-500">Number of distinct values per column, IDs, and zero-variance detection</p>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded bg-purple-50 text-purple-700 font-mono font-medium border border-purple-200">Cardinality Audit</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs table-executive">
+                <thead>
+                  <tr>
+                    <th class="px-5 py-3">Column</th>
+                    <th class="px-5 py-3">Distinct Count</th>
+                    <th class="px-5 py-3">Uniqueness Ratio</th>
+                    <th class="px-5 py-3">Cardinality Type</th>
+                    <th class="px-5 py-3">Sample Values</th>
+                  </tr>
+                </thead>
+                <tbody id="cardinalityTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 7. TARGET DISTRIBUTION -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-800 font-mono font-bold text-xs flex items-center justify-center">7</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Target Distribution</h3>
+                  <p class="text-xs text-slate-500">Frequency, proportion, mean, range of target, and class balance</p>
+                </div>
+              </div>
+              <span id="targetDistributionTag" class="text-xs px-2.5 py-1 rounded bg-rose-50 text-rose-700 font-mono font-semibold border border-rose-200">Target Audit</span>
+            </div>
+            <div class="p-5" id="targetInvestigationBody"></div>
+          </div>
+
+          <!-- 8. OUTLIERS -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-red-100 text-red-800 font-mono font-bold text-xs flex items-center justify-center">8</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Outlier Analysis (Tukey 1.5×IQR Rule)</h3>
+                  <p class="text-xs text-slate-500">Extreme anomalous values and boundary violations</p>
+                </div>
+              </div>
+              <span id="outlierBadgeCount" class="text-xs px-2.5 py-1 rounded bg-red-50 text-red-700 font-mono font-semibold border border-red-200">0 Outliers</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs table-executive font-mono">
+                <thead>
+                  <tr>
+                    <th class="px-5 py-3 font-sans">Feature</th>
+                    <th class="px-4 py-3">Outlier Count</th>
+                    <th class="px-4 py-3">Outlier %</th>
+                    <th class="px-4 py-3">Lower Boundary</th>
+                    <th class="px-4 py-3">Upper Boundary</th>
+                    <th class="px-4 py-3">Severity</th>
+                    <th class="px-4 py-3 font-sans">Treatment Recommendation</th>
+                  </tr>
+                </thead>
+                <tbody id="outliersTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 9. FEATURE RELATIONSHIPS -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-teal-100 text-teal-800 font-mono font-bold text-xs flex items-center justify-center">9</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Feature Relationships</h3>
+                  <p class="text-xs text-slate-500">Correlation ranking and multicollinearity detection</p>
+                </div>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded bg-teal-50 text-teal-700 font-mono font-semibold border border-teal-200">Correlation Audit</span>
+            </div>
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4" id="featureRelBody"></div>
+          </div>
+
+          <!-- 10. DATA QUALITY & LEAKAGE -->
+          <div class="eda-card rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-800 font-mono font-bold text-xs flex items-center justify-center">10</span>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm">Data Quality & Leakage Checks</h3>
+                  <p class="text-xs text-slate-500">Invalid values, inconsistent categories, target proxies, and suspicious features</p>
+                </div>
+              </div>
+              <span id="qualityScoreBadge" class="text-xs px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 font-mono font-semibold border border-emerald-200">Cleanliness: 100/100</span>
+            </div>
+            <div class="p-5 space-y-3" id="qualityIssuesList"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 2: 10 VISUALIZATIONS VIEW -->
+      <!-- ========================================================= -->
+      <div id="tabContentVisualizations" class="hidden space-y-6">
+
+        <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200 flex items-center justify-between">
+          <div class="flex items-center space-x-2 text-blue-900 text-xs font-medium">
+            <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+            <span>All 10 visual charts are dynamically plotted and updated for your uploaded CSV. Select different features to inspect distributions.</span>
+          </div>
+          <span class="text-[11px] font-mono text-blue-700 bg-white px-2.5 py-1 rounded border border-blue-200">10 Pre-Model Charts</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- 1. MISSING VALUES HEATMAP -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-800 font-mono font-bold text-xs flex items-center justify-center">1</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Missing Values Heatmap</h3>
+                </div>
+                <span class="text-[11px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Null Matrix</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Shows missing data patterns across columns and rows (red: null, grey: present).</p>
+              <div class="relative h-64 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2 flex flex-col justify-center">
+                <canvas id="canvasMissingHeatmap"></canvas>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Legend: <span class="inline-block w-2.5 h-2.5 bg-slate-300 rounded-sm mr-1"></span>Present <span class="inline-block w-2.5 h-2.5 bg-rose-500 rounded-sm ml-2 mr-1"></span>Missing</span>
+              <span id="missingHeatmapSummary">0 nulls</span>
+            </div>
+          </div>
+
+          <!-- 2. HISTOGRAMS (NUMERICAL) -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">2</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Histograms (Numerical Features)</h3>
+                </div>
+                <select id="histFeatureSelect" onchange="renderHistogramChart()" class="text-xs bg-slate-50 text-slate-800 border border-slate-300 rounded-lg px-2 py-1">
+                  <!-- Injected -->
+                </select>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Understand distribution, skewness, peaks, and spread across intervals.</p>
+              <div class="relative h-64">
+                <canvas id="canvasHistogram"></canvas>
+              </div>
+            </div>
+            <div id="histStatsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 3. BOX PLOTS -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-800 font-mono font-bold text-xs flex items-center justify-center">3</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Box Plot & Quartile Spread</h3>
+                </div>
+                <select id="boxFeatureSelect" onchange="renderBoxplotChart()" class="text-xs bg-slate-50 text-slate-800 border border-slate-300 rounded-lg px-2 py-1">
+                  <!-- Injected -->
+                </select>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Compare median, quartiles (Q1, Q3), whisker range, and potential outliers.</p>
+              <div class="relative h-64">
+                <canvas id="canvasBoxplot"></canvas>
+              </div>
+            </div>
+            <div id="boxStatsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 4. COUNT PLOTS (CATEGORICAL) -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-purple-100 text-purple-800 font-mono font-bold text-xs flex items-center justify-center">4</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Count Plots (Categorical Features)</h3>
+                </div>
+                <select id="countFeatureSelect" onchange="renderCountPlotChart()" class="text-xs bg-slate-50 text-slate-800 border border-slate-300 rounded-lg px-2 py-1">
+                  <!-- Injected -->
+                </select>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">See how frequently categories occur; detect rare and dominant values.</p>
+              <div class="relative h-64">
+                <canvas id="canvasCountplot"></canvas>
+              </div>
+            </div>
+            <div id="countPlotFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 5. CORRELATION HEATMAP (FULL WIDTH) -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between lg:col-span-2">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-teal-100 text-teal-800 font-mono font-bold text-xs flex items-center justify-center">5</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Correlation Heatmap</h3>
+                </div>
+                <span class="text-[11px] font-mono text-teal-700 bg-teal-50 px-2.5 py-1 rounded border border-teal-200">Pearson Correlation (-1.00 to +1.00)</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Find highly correlated numerical features and detect potential multicollinearity.</p>
+              <div class="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-4 min-h-[280px]">
+                <div id="corrHeatmapContainer" class="flex flex-col items-center justify-center"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. SCATTER PLOTS -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">6</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Scatter Plot (Bivariate Relationship)</h3>
+                </div>
+                <select id="scatterPairSelect" onchange="renderScatterChart()" class="text-xs bg-slate-50 text-slate-800 border border-slate-300 rounded-lg px-2 py-1 max-w-[200px] truncate">
+                  <!-- Injected -->
+                </select>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Analyze relationships between two numerical variables; detect clusters & trends.</p>
+              <div class="relative h-64">
+                <canvas id="canvasScatter"></canvas>
+              </div>
+            </div>
+            <div id="scatterFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 7. TARGET DISTRIBUTION PLOT -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-800 font-mono font-bold text-xs flex items-center justify-center">7</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Target Distribution Plot</h3>
+                </div>
+                <span id="targetPlotTypeBadge" class="text-[11px] font-mono text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">Classification</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Classification: bar/donut proportions. Regression: histogram/KDE distribution.</p>
+              <div class="relative h-64">
+                <canvas id="canvasTargetDist"></canvas>
+              </div>
+            </div>
+            <div id="targetPlotFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 8. PAIR PLOT (FULL WIDTH) -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between lg:col-span-2">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-mono font-bold text-xs flex items-center justify-center">8</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Pair Plot (Multi-Variable Matrix)</h3>
+                </div>
+                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">Simultaneous Multi-Feature Analysis</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Analyze relationships between multiple numerical features simultaneously to discover clusters & class boundaries.</p>
+              <div id="pairplotGridContainer" class="p-3 rounded-lg border border-slate-200 bg-slate-50 overflow-x-auto min-h-[280px]"></div>
+            </div>
+          </div>
+
+          <!-- 9. FEATURE VS TARGET PLOTS -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-purple-100 text-purple-800 font-mono font-bold text-xs flex items-center justify-center">9</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Feature vs Target Plot</h3>
+                </div>
+                <select id="featVsTargetSelect" onchange="renderFeatVsTargetChart()" class="text-xs bg-slate-50 text-slate-800 border border-slate-300 rounded-lg px-2 py-1 max-w-[190px] truncate">
+                  <!-- Injected -->
+                </select>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Evaluates feature behavior across target classes (or regression scatter correlation).</p>
+              <div class="relative h-64">
+                <canvas id="canvasFeatVsTarget"></canvas>
+              </div>
+            </div>
+            <div id="featVsTargetFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+          <!-- 10. TIME-SERIES PLOT -->
+          <div class="eda-card rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center">10</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Time-Series Plot</h3>
+                </div>
+                <span id="tsStatusTag" class="text-[11px] font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Temporal Trend</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-4">Inspect trends, seasonality, sudden shifts, and drift over sequential periods.</p>
+              <div id="tsCanvasContainer" class="relative h-64">
+                <canvas id="canvasTimeSeries"></canvas>
+              </div>
+            </div>
+            <div id="tsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-mono"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 3: RAW DATA PREVIEW -->
+      <!-- ========================================================= -->
+      <div id="tabContentRawData" class="hidden space-y-4">
+        <div class="eda-card rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Raw Dataset Inspection (First 15 Rows)</h3>
+              <p class="text-xs text-slate-500">Direct tabular preview with missing value flags</p>
+            </div>
+            <button onclick="downloadCleanReport()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-300 shadow-sm transition">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Export Audit Report (JSON)</span>
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-lg border border-slate-200">
+            <table class="w-full text-left text-xs table-executive">
+              <thead id="rawTableHeader" class="font-mono text-slate-700"></thead>
+              <tbody id="rawTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+      <div class="p-6 rounded-2xl bg-white shadow-2xl border border-slate-200 flex flex-col items-center max-w-sm text-center">
+        <div class="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <h3 class="text-sm font-bold text-slate-900">Processing Dataset</h3>
+        <p class="text-xs text-slate-500 mt-1 font-mono" id="loadingStatusText">Analyzing dataset...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CLEAN LIGHT FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500 font-mono mt-auto">
+    NexusEDA — Professional Pre-Modeling Exploratory Data Analysis & Visual Intelligence Suite
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
