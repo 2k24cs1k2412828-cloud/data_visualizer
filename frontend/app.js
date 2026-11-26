@@ -22,7 +22,41 @@ const SAAS_COLORS = {
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
   setupUploadListeners();
+  
+  // Re-render canvas heatmap when window is resized
+  window.addEventListener('resize', () => {
+    const vizTab = document.getElementById('tabContentVisualizations');
+    if (vizTab && !vizTab.classList.contains('hidden') && globalData) {
+      renderMissingHeatmap();
+    }
+  });
 });
+
+// Check if user is authenticated before performing actions
+function requireAuth(actionCallback) {
+  // Check if firebase auth has an active user
+  const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+  if (user) {
+    if (actionCallback) actionCallback();
+    return true;
+  }
+  // Not authenticated: prompt user to create account or sign in first
+  if (typeof openAuthModal === 'function') {
+    openAuthModal('signup');
+  }
+  return false;
+}
+
+// Global function to trigger upload safely from any button
+function triggerUpload() {
+  if (!requireAuth()) {
+    return;
+  }
+  const fileInput = document.getElementById('fileUploadInput');
+  if (fileInput) {
+    fileInput.click();
+  }
+}
 
 // Setup drag and drop & click listeners
 function setupUploadListeners() {
@@ -31,16 +65,22 @@ function setupUploadListeners() {
   const sampleBtn = document.getElementById('sampleDatasetsBtn');
   const sampleMenu = document.getElementById('sampleMenu');
 
-  sampleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    sampleMenu.classList.toggle('hidden');
-  });
-  document.addEventListener('click', () => {
-    sampleMenu.classList.add('hidden');
-  });
+  if (sampleBtn && sampleMenu) {
+    sampleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sampleMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => {
+      sampleMenu.classList.add('hidden');
+    });
+  }
 
   if (dropZone) {
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', (e) => {
+      // Prevent double firing if clicking button inside
+      e.preventDefault();
+      triggerUpload();
+    });
     
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
@@ -57,18 +97,26 @@ function setupUploadListeners() {
     });
 
     dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
       const files = e.dataTransfer.files;
-      if (files.length > 0) {
+      if (files && files.length > 0) {
+        if (!requireAuth()) return;
         handleFileUpload(files[0]);
       }
     });
   }
 
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      handleFileUpload(e.target.files[0]);
-    }
-  });
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        if (!requireAuth()) {
+          fileInput.value = '';
+          return;
+        }
+        handleFileUpload(e.target.files[0]);
+      }
+    });
+  }
 }
 
 function showLoading(show, message = "Analyzing Dataset...") {
@@ -86,6 +134,7 @@ function showLoading(show, message = "Analyzing Dataset...") {
 
 // Upload file to FastAPI backend
 async function handleFileUpload(file) {
+  if (!requireAuth()) return;
   if (!file.name.endsWith('.csv')) {
     alert("Please select a valid CSV file.");
     return;
@@ -112,6 +161,7 @@ async function handleFileUpload(file) {
 
 // Load sample dataset
 async function loadSample(sampleName) {
+  if (!requireAuth()) return;
   showLoading(true, `Loading demo dataset...`);
   try {
     const res = await fetch(`/api/sample/${sampleName}`);
@@ -165,8 +215,33 @@ function switchMainTab(tab) {
   });
 
   if (tab === 'visualizations') {
-    setTimeout(renderAllVisualizations, 50);
+    // Small timeout ensures the DOM tab element is unhidden and has non-zero clientWidth
+    setTimeout(renderAllVisualizations, 60);
+    setTimeout(renderMissingHeatmap, 150);
   }
+}
+
+// Return to Home / Landing Upload Screen
+function returnToHome() {
+  // Hide dashboard, show hero upload state
+  const dashboardState = document.getElementById('dashboardState');
+  const heroUploadState = document.getElementById('heroUploadState');
+  const activeFileBadge = document.getElementById('activeFileBadge');
+  const fileInput = document.getElementById('fileUploadInput');
+
+  if (dashboardState) dashboardState.classList.add('hidden');
+  if (heroUploadState) heroUploadState.classList.remove('hidden');
+  if (activeFileBadge) {
+    activeFileBadge.classList.add('hidden');
+    activeFileBadge.classList.remove('flex');
+  }
+  if (fileInput) fileInput.value = '';
+
+  // Reset tab to investigations for next time
+  switchMainTab('investigations');
+
+  // Smooth scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // =========================================================
@@ -175,9 +250,15 @@ function switchMainTab(tab) {
 function renderAppWithData(filename, data) {
   globalData = data;
 
+  // Auto-record this analysis in user Firestore history if authenticated
+  if (typeof recordAnalysisInHistory === 'function') {
+    recordAnalysisInHistory(filename, data);
+  }
+
   // Hide home landing screen, show dashboard
   document.getElementById('heroUploadState').classList.add('hidden');
   document.getElementById('dashboardState').classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
   
   // Header badge
   const badge = document.getElementById('activeFileBadge');
@@ -599,41 +680,66 @@ function getOrCreateChart(canvasId, config) {
 // 1. Missing Values Heatmap (Minimalist Canvas Grid)
 function renderMissingHeatmap() {
   const canvas = document.getElementById('canvasMissingHeatmap');
+  if (!globalData || !globalData.visualizations) return;
   const viz = globalData.visualizations.missing_heatmap;
   if (!canvas || !viz || !viz.matrix || viz.matrix.length === 0) return;
 
-  const ctx = canvas.getContext('2d');
+  const parent = canvas.parentElement;
   const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
+  const width = parent.clientWidth || parent.offsetWidth || 500;
+  const height = parent.clientHeight || parent.offsetHeight || 240;
+
+  // Set explicit canvas element style and coordinate size
+  canvas.width = Math.floor(width * dpr);
+  canvas.height = Math.floor(height * dpr);
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
   ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
 
   const numRows = viz.matrix.length;
   const numCols = viz.columns.length;
-  const w = rect.width / numCols;
-  const h = (rect.height - 25) / numRows;
+  const labelSpace = 24;
+  const usableHeight = height - labelSpace;
+  const cellWidth = width / numCols;
+  const cellHeight = usableHeight / numRows;
 
-  ctx.clearRect(0, 0, rect.width, rect.height);
-
+  // Draw cells
   for (let r = 0; r < numRows; r++) {
     for (let c = 0; c < numCols; c++) {
       const isMissing = viz.matrix[r][c] === 1;
       ctx.fillStyle = isMissing ? '#111827' : '#e5e7eb';
-      ctx.fillRect(c * w, r * h, Math.max(1, w - 1), Math.max(1, h - 1));
+      ctx.fillRect(
+        c * cellWidth,
+        r * cellHeight,
+        Math.max(1, cellWidth - 1),
+        Math.max(1, cellHeight - 1)
+      );
     }
   }
 
-  // Clean labels
-  ctx.fillStyle = '#6b7280';
-  ctx.font = '10px Inter, sans-serif';
+  // Draw column labels
+  ctx.fillStyle = '#4b5563';
+  ctx.font = '10px Inter, -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
   for (let c = 0; c < numCols; c++) {
-    const name = viz.columns[c].slice(0, 8);
-    ctx.fillText(name, c * w + 2, rect.height - 8);
+    const rawName = viz.columns[c] || '';
+    const name = rawName.length > 8 ? rawName.slice(0, 7) + '…' : rawName;
+    ctx.fillText(name, c * cellWidth + 2, usableHeight + 12);
   }
 
-  const missingSum = viz.missing_per_col.reduce((a, b) => a + b, 0);
-  document.getElementById('missingHeatmapSummary').textContent = `${missingSum} missing cells in matrix`;
+  ctx.restore();
+
+  const missingSum = (viz.missing_per_col || []).reduce((a, b) => a + b, 0);
+  const summaryEl = document.getElementById('missingHeatmapSummary');
+  if (summaryEl) {
+    summaryEl.textContent = `${missingSum} missing cells in matrix`;
+  }
 }
 
 // 2. Histograms (Crisp Professional Bar)
