@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataProfiler — Exploratory Data Analysis & Visualizations</title>
+  <title>DataProfiler — Automated Dataset Diagnostics & Visual Analytics</title>
+  <!-- Google Fonts, Tailwind CSS, Lucide Icons & Chart.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,7 +16,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           }
         }
       }
@@ -23,50 +25,66 @@
   </script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-[#fafafa] text-gray-900 min-h-screen antialiased flex flex-col font-sans">
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased flex flex-col font-sans">
 
-  <!-- TOP APP HEADER -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+  <!-- TOP APP NAVIGATION -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-15 flex items-center justify-between">
       
-      <!-- Brand -->
-      <a href="/" onclick="location.reload(); return false;" class="flex items-center space-x-2.5 cursor-pointer">
-        <div class="w-7 h-7 rounded bg-gray-900 flex items-center justify-center text-white font-semibold text-sm">
-          DP
-        </div>
-        <span class="font-bold text-base text-gray-900 tracking-tight">DataProfiler</span>
-      </a>
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-6">
+        <a href="/" onclick="resetToHome(); return false;" class="flex items-center space-x-2.5 cursor-pointer group">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-700 transition">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="font-extrabold text-sm tracking-tight text-slate-900 flex items-center space-x-1.5">
+              <span>DataProfiler</span>
+              <span class="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">v2.4</span>
+            </div>
+            <div class="text-[11px] text-slate-500 leading-none">Dataset Diagnostics & EDA</div>
+          </div>
+        </a>
 
-      <!-- Right controls -->
+        <!-- Dataset Name Badge (Visible when data loaded) -->
+        <div id="activeFileBadge" class="hidden items-center space-x-2 px-3 py-1 rounded-md bg-slate-100/80 border border-slate-200 text-xs">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-indigo-600"></i>
+          <span id="activeFileName" class="font-semibold text-slate-800 max-w-[160px] truncate">dataset.csv</span>
+          <span id="activeFileShape" class="text-slate-500 font-mono text-[11px]">350 × 10</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
       <div class="flex items-center space-x-3">
-        <!-- Active File Indicator (Only shown after upload) -->
-        <div id="activeFileBadge" class="hidden items-center space-x-2 px-2.5 py-1 rounded border border-gray-200 bg-gray-50 text-xs text-gray-700">
-          <i data-lucide="file-text" class="w-3.5 h-3.5 text-gray-500"></i>
-          <span id="activeFileName" class="font-medium max-w-[140px] truncate">file.csv</span>
-          <span id="activeFileShape" class="text-gray-500 font-mono text-[11px]">0 × 0</span>
-        </div>
-
-        <!-- Sample dropdown -->
+        
+        <!-- Benchmark Datasets Dropdown -->
         <div class="relative">
-          <button id="sampleDatasetsBtn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-medium text-gray-700 transition">
-            <span>Demo Data</span>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-500"></i>
+          <button id="sampleDatasetsBtn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition shadow-2xs">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Demo Benchmarks</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
           </button>
-          <div id="sampleMenu" class="hidden absolute right-0 mt-1.5 w-56 rounded-md bg-white border border-gray-200 shadow-lg py-1 z-50">
-            <div class="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Example Datasets</div>
-            <button onclick="loadSample('customer_churn')" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-xs text-gray-700 flex flex-col">
-              <span class="font-medium text-gray-900">Customer Churn</span>
-              <span class="text-[11px] text-gray-500">Classification task with nulls & outliers</span>
+          <div id="sampleMenu" class="hidden absolute right-0 mt-1.5 w-60 rounded-xl bg-white border border-slate-200 shadow-xl py-1.5 z-50">
+            <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preloaded Datasets</div>
+            <button onclick="loadSample('customer_churn')" class="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs text-slate-700 flex items-start space-x-2 transition">
+              <span class="w-2 h-2 rounded-full bg-indigo-600 mt-1.5 shrink-0"></span>
+              <div>
+                <div class="font-semibold text-slate-900">Customer Churn</div>
+                <div class="text-[11px] text-slate-500">Classification with outliers & nulls</div>
+              </div>
             </button>
-            <button onclick="loadSample('housing_prices')" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-xs text-gray-700 flex flex-col border-t border-gray-100">
-              <span class="font-medium text-gray-900">Housing Prices</span>
-              <span class="text-[11px] text-gray-500">Regression task with continuous target</span>
+            <button onclick="loadSample('housing_prices')" class="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs text-slate-700 flex items-start space-x-2 transition border-t border-slate-100">
+              <span class="w-2 h-2 rounded-full bg-teal-600 mt-1.5 shrink-0"></span>
+              <div>
+                <div class="font-semibold text-slate-900">Housing Valuation</div>
+                <div class="text-[11px] text-slate-500">Continuous regression target</div>
+              </div>
             </button>
           </div>
         </div>
 
-        <!-- Upload Button -->
-        <button onclick="document.getElementById('fileUploadInput').click()" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded bg-gray-900 hover:bg-black text-white text-xs font-medium transition shadow-xs">
+        <!-- Upload CSV CTA -->
+        <button onclick="document.getElementById('fileUploadInput').click()" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition active:scale-95">
           <i data-lucide="upload" class="w-3.5 h-3.5"></i>
           <span>Upload CSV</span>
         </button>
@@ -76,48 +94,70 @@
     </div>
   </header>
 
-  <!-- MAIN AREA -->
+  <!-- MAIN APP CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- ========================================================= -->
     <!-- 1. HOME SCREEN / LANDING PAGE (DEFAULT INITIAL VIEW)       -->
     <!-- ========================================================= -->
-    <section id="heroUploadState" class="max-w-3xl mx-auto py-6">
+    <section id="heroUploadState" class="max-w-4xl mx-auto py-8">
       
-      <!-- Headline & Subtitle -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-          Automated Exploratory Data Analysis
+      <!-- Headline & Value Prop -->
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold mb-4">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Pre-Modeling Machine Learning Diagnostics</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          Inspect, Audit & Visualize <br>Any Tabular Dataset in Seconds
         </h1>
-        <p class="mt-3 text-base text-gray-600 leading-relaxed max-w-2xl mx-auto">
-          Upload any CSV to immediately run 10 pre-modeling audits and generate 10 statistical visualizations across distributions, outliers, cardinality, and feature relationships.
+        <p class="mt-4 text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          Upload your CSV to automatically run 10 data diagnostics (nulls, duplicates, outliers, target balance, leakage) and generate 10 interactive exploratory charts before modeling.
         </p>
       </div>
 
-      <!-- Professional Upload Box -->
-      <div id="dropZone" class="bg-white border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-10 text-center cursor-pointer transition">
-        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-          <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+      <!-- Drag & Drop Zone -->
+      <div id="dropZone" class="panel-card p-10 text-center cursor-pointer border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-white transition duration-200 group">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition duration-200">
+          <i data-lucide="upload-cloud" class="w-7 h-7"></i>
         </div>
-        <div class="text-sm font-semibold text-gray-900">Choose a CSV file or drag and drop</div>
-        <p class="text-xs text-gray-500 mt-1 mb-4">CSV files up to 200MB are supported</p>
-        <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 shadow-2xs">
-          Browse Files
-        </button>
+        <h3 class="text-base font-bold text-slate-900 mb-1">Upload your CSV file</h3>
+        <p class="text-xs text-slate-500 mb-5">Drag and drop your dataset here or click to browse</p>
+        <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          <span>Select File</span>
+        </div>
+        <div class="mt-6 flex items-center justify-center space-x-6 text-xs text-slate-500 font-medium border-t border-slate-100 pt-5">
+          <span class="flex items-center space-x-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i><span>Shape & Types</span></span>
+          <span class="flex items-center space-x-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i><span>Outlier Bounds</span></span>
+          <span class="flex items-center space-x-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i><span>10 Pro Charts</span></span>
+          <span class="flex items-center space-x-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i><span>Leakage Audit</span></span>
+        </div>
       </div>
 
-      <!-- Overview of Features Grid -->
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-        <div class="card-base p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-1">Part 1: 10 Investigations</h3>
-          <p class="text-xs text-gray-600 leading-relaxed">
-            Dataset shape, inferred data types, null counts & percentage, exact & partial duplicates, five-number summary stats, cardinality & ID flags, target distribution, Tukey IQR outliers, correlation matrix, and data quality checks.
+      <!-- Features Matrix Cards -->
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="panel-card p-5">
+          <div class="flex items-center space-x-2.5 mb-2.5">
+            <div class="p-1.5 rounded-md bg-indigo-50 text-indigo-700">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Part 1: 10 Investigations</h3>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            1. Dataset Shape • 2. Data Types • 3. Missing Values • 4. Duplicate Records • 5. Statistical Summary • 6. Unique Values / Cardinality • 7. Target Distribution • 8. Outliers (IQR) • 9. Feature Relationships • 10. Data Quality & Leakage.
           </p>
         </div>
-        <div class="card-base p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-1">Part 2: 10 Core Visualizations</h3>
-          <p class="text-xs text-gray-600 leading-relaxed">
-            Missing values heatmap, numerical histograms, box plots, categorical count plots, correlation heatmap, scatter plots, target distribution plot, pair plot matrix, feature vs target plots, and time-series / sequence plots.
+
+        <div class="panel-card p-5">
+          <div class="flex items-center space-x-2.5 mb-2.5">
+            <div class="p-1.5 rounded-md bg-teal-50 text-teal-700">
+              <i data-lucide="pie-chart" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">Part 2: 10 Visualizations</h3>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            1. Missing Heatmap • 2. Histograms • 3. Box Plots • 4. Count Plots • 5. Correlation Heatmap • 6. Scatter Plots • 7. Target Distribution • 8. Pair Plot Matrix • 9. Feature vs Target • 10. Time-Series / Sequence.
           </p>
         </div>
       </div>
@@ -129,28 +169,34 @@
     <!-- ========================================================= -->
     <section id="dashboardState" class="hidden space-y-6">
 
-      <!-- Navigation & Target Toolbar -->
-      <div class="bg-white border border-gray-200 rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
+      <!-- Executive Controls Ribbon -->
+      <div class="panel-card p-3.5 flex flex-wrap items-center justify-between gap-4">
         
-        <!-- Target Selector -->
+        <!-- Target Column Selector -->
         <div class="flex items-center space-x-3">
-          <span class="text-xs font-semibold text-gray-700">Target Feature:</span>
-          <select id="targetSelect" onchange="onTargetChanged()" class="bg-white text-gray-900 text-xs font-medium rounded border border-gray-300 px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-900">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="target" class="w-4 h-4 text-indigo-600"></i>
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">Target Feature:</span>
+          </div>
+          <select id="targetSelect" onchange="onTargetChanged()" class="bg-slate-50 text-slate-900 text-xs font-semibold rounded-md border border-slate-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <!-- Dynamically populated -->
           </select>
-          <span id="targetTaskBadge" class="text-xs px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-800 border border-gray-200">Classification</span>
+          <span id="targetTaskBadge" class="text-xs px-2.5 py-0.5 rounded-md font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">Classification</span>
         </div>
 
-        <!-- Tab Switcher -->
-        <div class="flex items-center space-x-1 border-b border-gray-200 sm:border-b-0">
-          <button id="tabBtnInvestigations" onclick="switchMainTab('investigations')" class="px-3 py-1.5 rounded text-xs font-medium transition bg-gray-900 text-white">
-            10 Investigations
+        <!-- Section Navigation Tabs -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <button id="tabBtnInvestigations" onclick="switchMainTab('investigations')" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1.5 bg-white text-indigo-700 shadow-xs">
+            <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
+            <span>Part 1: 10 Investigations</span>
           </button>
-          <button id="tabBtnVisualizations" onclick="switchMainTab('visualizations')" class="px-3 py-1.5 rounded text-xs font-medium transition text-gray-600 hover:text-gray-900">
-            10 Visualizations
+          <button id="tabBtnVisualizations" onclick="switchMainTab('visualizations')" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900">
+            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+            <span>Part 2: 10 Visualizations</span>
           </button>
-          <button id="tabBtnRawData" onclick="switchMainTab('rawdata')" class="px-3 py-1.5 rounded text-xs font-medium transition text-gray-600 hover:text-gray-900">
-            Raw Data
+          <button id="tabBtnRawData" onclick="switchMainTab('rawdata')" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900">
+            <i data-lucide="table" class="w-3.5 h-3.5"></i>
+            <span>Raw Data</span>
           </button>
         </div>
 
@@ -159,61 +205,82 @@
       <!-- ========================================================= -->
       <!-- TAB 1: 10 INVESTIGATIONS                                  -->
       <!-- ========================================================= -->
-      <div id="tabContentInvestigations" class="space-y-5">
+      <div id="tabContentInvestigations" class="space-y-6">
 
-        <!-- Top 4 Metrics -->
+        <!-- Top 4 Distinct Colored KPI Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="card-base p-4">
-            <div class="text-xs text-gray-500 font-medium">Dataset Shape</div>
-            <div id="cardShapeVal" class="text-2xl font-bold text-gray-900 mt-1">0 × 0</div>
-            <div id="cardShapeSub" class="text-[11px] text-gray-500 mt-0.5">Total dimensions</div>
+          
+          <!-- Shape -->
+          <div class="panel-card p-4 kpi-accent-blue">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-600">1. Shape</span>
+              <i data-lucide="grid" class="w-4 h-4 text-blue-600"></i>
+            </div>
+            <div id="cardShapeVal" class="text-2xl font-black text-slate-900 font-mono">0 × 0</div>
+            <div id="cardShapeSub" class="text-xs text-slate-500 mt-0.5">Total dimensions</div>
           </div>
-          <div class="card-base p-4">
-            <div class="text-xs text-gray-500 font-medium">Missing Values</div>
-            <div id="cardMissingVal" class="text-2xl font-bold text-gray-900 mt-1">0%</div>
-            <div id="cardMissingSub" class="text-[11px] text-gray-500 mt-0.5">0 null cells</div>
+
+          <!-- Missing -->
+          <div class="panel-card p-4 kpi-accent-amber">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-600">3. Missing</span>
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>
+            </div>
+            <div id="cardMissingVal" class="text-2xl font-black text-slate-900 font-mono">0%</div>
+            <div id="cardMissingSub" class="text-xs text-slate-500 mt-0.5">0 null cells</div>
           </div>
-          <div class="card-base p-4">
-            <div class="text-xs text-gray-500 font-medium">Duplicate Rows</div>
-            <div id="cardDupVal" class="text-2xl font-bold text-gray-900 mt-1">0</div>
-            <div id="cardDupSub" class="text-[11px] text-gray-500 mt-0.5">Exact duplicates</div>
+
+          <!-- Duplicates -->
+          <div class="panel-card p-4 kpi-accent-rose">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-600">4. Duplicates</span>
+              <i data-lucide="copy" class="w-4 h-4 text-rose-500"></i>
+            </div>
+            <div id="cardDupVal" class="text-2xl font-black text-slate-900 font-mono">0</div>
+            <div id="cardDupSub" class="text-xs text-slate-500 mt-0.5">Exact duplicates</div>
           </div>
-          <div class="card-base p-4">
-            <div class="text-xs text-gray-500 font-medium">Data Quality Score</div>
-            <div id="cardQualityVal" class="text-2xl font-bold text-gray-900 mt-1">100/100</div>
-            <div id="cardQualitySub" class="text-[11px] text-gray-500 mt-0.5">Audit result</div>
+
+          <!-- Quality -->
+          <div class="panel-card p-4 kpi-accent-emerald">
+            <div class="flex items-center justify-between text-slate-500 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-600">10. Quality Score</span>
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div id="cardQualityVal" class="text-2xl font-black text-emerald-600 font-mono">100/100</div>
+            <div id="cardQualitySub" class="text-xs text-slate-500 mt-0.5">Hygiene & leakage audit</div>
           </div>
+
         </div>
 
-        <!-- 10 Investigation Sections -->
+        <!-- 10 Detailed Investigation Panels -->
         <div class="space-y-4">
 
           <!-- 1. Dataset Shape -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">1. Dataset Shape</h3>
-                <p class="text-xs text-gray-500">Dimensions and in-memory scale of data</p>
+                <h3 class="font-bold text-slate-900 text-sm">1. Dataset Shape & Dimensions</h3>
+                <p class="text-xs text-slate-500">Row count, feature breadth, grid cells, and in-memory footprint</p>
               </div>
             </div>
-            <div class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4" id="invShapeContent"></div>
+            <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4" id="invShapeContent"></div>
           </div>
 
           <!-- 2. Data Types -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">2. Data Types</h3>
-                <p class="text-xs text-gray-500">Numerical, categorical, datetime, and boolean classification</p>
+                <h3 class="font-bold text-slate-900 text-sm">2. Data Types & Preprocessing Compatibility</h3>
+                <p class="text-xs text-slate-500">Numerical, categorical, datetime, and boolean classification</p>
               </div>
-              <div id="dtypeSummaryPills" class="flex items-center space-x-2 text-xs"></div>
+              <div id="dtypeSummaryPills" class="flex items-center space-x-2 text-xs font-mono"></div>
             </div>
             <div class="overflow-x-auto">
-              <table class="saas-table">
+              <table class="data-grid-table">
                 <thead>
                   <tr>
-                    <th>Column</th>
-                    <th>Type</th>
+                    <th>Feature Name</th>
+                    <th>Inferred Type</th>
                     <th>Recommended Preprocessing</th>
                     <th>Model Compatibility</th>
                   </tr>
@@ -224,23 +291,23 @@
           </div>
 
           <!-- 3. Missing Values -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">3. Missing Values</h3>
-                <p class="text-xs text-gray-500">Null counts and percentages per column</p>
+                <h3 class="font-bold text-slate-900 text-sm">3. Missing Values Audit</h3>
+                <p class="text-xs text-slate-500">Count and percentage of nulls in each feature</p>
               </div>
-              <span id="missingBadgeTotal" class="text-xs font-medium text-gray-700">0% Missing</span>
+              <span id="missingBadgeTotal" class="text-xs font-semibold text-slate-700">0% Missing</span>
             </div>
             <div class="overflow-x-auto">
-              <table class="saas-table">
+              <table class="data-grid-table">
                 <thead>
                   <tr>
                     <th>Column</th>
                     <th>Missing Count</th>
                     <th>Missing %</th>
-                    <th style="width: 140px;">Ratio</th>
-                    <th>Action</th>
+                    <th style="width: 140px;">Proportion</th>
+                    <th>Imputation Action</th>
                   </tr>
                 </thead>
                 <tbody id="missingTableBody"></tbody>
@@ -249,25 +316,25 @@
           </div>
 
           <!-- 4. Duplicate Records -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">4. Duplicate Records</h3>
-                <p class="text-xs text-gray-500">Exact duplicate rows and partial feature overlaps</p>
+                <h3 class="font-bold text-slate-900 text-sm">4. Duplicate Records Investigation</h3>
+                <p class="text-xs text-slate-500">Exact duplicate rows and partial feature overlaps</p>
               </div>
-              <span id="dupStatusBadge" class="text-xs font-medium text-gray-700">No Duplicates</span>
+              <span id="dupStatusBadge" class="text-xs font-bold text-slate-700">No Duplicates</span>
             </div>
-            <div class="p-4 flex flex-col md:flex-row gap-4" id="dupContentBox"></div>
+            <div class="p-5 flex flex-col md:flex-row gap-4" id="dupContentBox"></div>
           </div>
 
           <!-- 5. Statistical Summary -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">5. Statistical Summary</h3>
-              <p class="text-xs text-gray-500">Mean, std dev, min, max, quartiles, and skewness</p>
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200">
+              <h3 class="font-bold text-slate-900 text-sm">5. Statistical Summary (Five-Number Summary & Moments)</h3>
+              <p class="text-xs text-slate-500">Mean, std dev, min, max, quartiles (Q1, Q3), IQR, and skewness</p>
             </div>
             <div class="overflow-x-auto">
-              <table class="saas-table font-mono text-xs">
+              <table class="data-grid-table font-mono text-xs">
                 <thead>
                   <tr class="font-sans">
                     <th>Feature</th>
@@ -289,19 +356,19 @@
           </div>
 
           <!-- 6. Unique Values / Cardinality -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">6. Unique Values / Cardinality</h3>
-              <p class="text-xs text-gray-500">Distinct count, uniqueness ratio, and high-cardinality detection</p>
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200">
+              <h3 class="font-bold text-slate-900 text-sm">6. Unique Values & Cardinality</h3>
+              <p class="text-xs text-slate-500">Distinct counts, uniqueness ratios, ID flags, and zero-variance detection</p>
             </div>
             <div class="overflow-x-auto">
-              <table class="saas-table">
+              <table class="data-grid-table">
                 <thead>
                   <tr>
                     <th>Column</th>
                     <th>Distinct Count</th>
-                    <th>Ratio</th>
-                    <th>Classification</th>
+                    <th>Uniqueness Ratio</th>
+                    <th>Classification Type</th>
                     <th>Sample Values</th>
                   </tr>
                 </thead>
@@ -311,34 +378,34 @@
           </div>
 
           <!-- 7. Target Distribution -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">7. Target Distribution</h3>
-                <p class="text-xs text-gray-500">Class frequency, proportion, and balance evaluation</p>
+                <h3 class="font-bold text-slate-900 text-sm">7. Target Distribution & Balance</h3>
+                <p class="text-xs text-slate-500">Frequency, proportion, mean, spread, and imbalance severity</p>
               </div>
             </div>
-            <div class="p-4" id="targetInvestigationBody"></div>
+            <div class="p-5" id="targetInvestigationBody"></div>
           </div>
 
           <!-- 8. Outliers -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">8. Outlier Detection (Tukey IQR)</h3>
-                <p class="text-xs text-gray-500">Identifies values outside 1.5×IQR boundary thresholds</p>
+                <h3 class="font-bold text-slate-900 text-sm">8. Outlier Detection (Tukey 1.5×IQR Rule)</h3>
+                <p class="text-xs text-slate-500">Extreme anomalous values and boundary violations</p>
               </div>
-              <span id="outlierBadgeCount" class="text-xs font-medium text-gray-700">0 Outliers</span>
+              <span id="outlierBadgeCount" class="text-xs font-bold text-slate-700">0 Outliers</span>
             </div>
             <div class="overflow-x-auto">
-              <table class="saas-table">
+              <table class="data-grid-table font-mono text-xs">
                 <thead>
-                  <tr>
+                  <tr class="font-sans">
                     <th>Feature</th>
                     <th>Outlier Count</th>
                     <th>Outlier %</th>
-                    <th>Lower Bound</th>
-                    <th>Upper Bound</th>
+                    <th>Lower Fence</th>
+                    <th>Upper Fence</th>
                     <th>Severity</th>
                     <th>Treatment Suggestion</th>
                   </tr>
@@ -349,24 +416,24 @@
           </div>
 
           <!-- 9. Feature Relationships -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">9. Feature Relationships</h3>
-              <p class="text-xs text-gray-500">Cross-correlations and multicollinearity risks</p>
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200">
+              <h3 class="font-bold text-slate-900 text-sm">9. Feature Relationships & Multicollinearity</h3>
+              <p class="text-xs text-slate-500">Cross-correlations and candidate predictor ranking</p>
             </div>
-            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4" id="featureRelBody"></div>
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4" id="featureRelBody"></div>
           </div>
 
           <!-- 10. Data Quality & Leakage -->
-          <div class="card-base overflow-hidden">
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div class="panel-card overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">10. Data Quality & Leakage</h3>
-                <p class="text-xs text-gray-500">Zero variance, ID memorization risks, and proxy leakage</p>
+                <h3 class="font-bold text-slate-900 text-sm">10. Data Quality & Pre-Model Leakage Defense</h3>
+                <p class="text-xs text-slate-500">Zero variance, ID memorization, casing discrepancies, and proxy leakage</p>
               </div>
-              <span id="qualityScoreBadge" class="text-xs font-semibold text-gray-800">Cleanliness: 100/100</span>
+              <span id="qualityScoreBadge" class="text-xs font-bold text-slate-800">Cleanliness: 100/100</span>
             </div>
-            <div class="p-4 space-y-2.5" id="qualityIssuesList"></div>
+            <div class="p-5 space-y-3" id="qualityIssuesList"></div>
           </div>
 
         </div>
@@ -377,159 +444,190 @@
       <!-- ========================================================= -->
       <div id="tabContentVisualizations" class="hidden space-y-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <!-- 1. Missing Values Heatmap -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">1. Missing Values Heatmap</h3>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">1</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Missing Values Heatmap</h3>
+                </div>
+                <span class="text-[11px] font-mono text-slate-500">Null Matrix</span>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Null patterns across columns and initial rows (dark: missing, light: present).</p>
-              <div class="relative h-60 bg-gray-50 border border-gray-200 rounded p-2 flex flex-col justify-center">
+              <p class="text-xs text-slate-500 mb-4">Visual pattern of missing data across columns and initial rows.</p>
+              <div class="relative h-64 bg-slate-50 border border-slate-200 rounded-lg p-2 flex flex-col justify-center overflow-hidden">
                 <canvas id="canvasMissingHeatmap"></canvas>
               </div>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-              <span>Legend: <span class="inline-block w-2.5 h-2.5 bg-gray-300 rounded-xs mr-1"></span>Present <span class="inline-block w-2.5 h-2.5 bg-gray-900 rounded-xs ml-2 mr-1"></span>Missing</span>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Legend: <span class="inline-block w-2.5 h-2.5 bg-slate-200 rounded-xs mr-1"></span>Present <span class="inline-block w-2.5 h-2.5 bg-rose-600 rounded-xs ml-2 mr-1"></span>Missing</span>
               <span id="missingHeatmapSummary">0 nulls</span>
             </div>
           </div>
 
           <!-- 2. Histograms (Numerical) -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">2. Histograms (Numerical)</h3>
-                <select id="histFeatureSelect" onchange="renderHistogramChart()" class="text-xs bg-white text-gray-800 border border-gray-300 rounded px-2 py-1">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">2</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Histograms (Numerical Features)</h3>
+                </div>
+                <select id="histFeatureSelect" onchange="renderHistogramChart()" class="text-xs bg-white text-slate-800 border border-slate-300 rounded px-2.5 py-1 font-semibold">
                 </select>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Frequency distribution and peaks across value bins.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Frequency distribution, skewness, and intervals for numerical features.</p>
+              <div class="relative h-64">
                 <canvas id="canvasHistogram"></canvas>
               </div>
             </div>
-            <div id="histStatsFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="histStatsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
           <!-- 3. Box Plots -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">3. Box Plots & Quartiles</h3>
-                <select id="boxFeatureSelect" onchange="renderBoxplotChart()" class="text-xs bg-white text-gray-800 border border-gray-300 rounded px-2 py-1">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">3</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Box Plot & Quartile Spread</h3>
+                </div>
+                <select id="boxFeatureSelect" onchange="renderBoxplotChart()" class="text-xs bg-white text-slate-800 border border-slate-300 rounded px-2.5 py-1 font-semibold">
                 </select>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Spread, median, quartiles (Q1, Q3), and outlier bounds.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Spread, median, quartiles (Q1, Q3), and outlier bounds.</p>
+              <div class="relative h-64">
                 <canvas id="canvasBoxplot"></canvas>
               </div>
             </div>
-            <div id="boxStatsFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="boxStatsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
           <!-- 4. Count Plots (Categorical) -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">4. Count Plots (Categorical)</h3>
-                <select id="countFeatureSelect" onchange="renderCountPlotChart()" class="text-xs bg-white text-gray-800 border border-gray-300 rounded px-2 py-1">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">4</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Count Plots (Categorical Features)</h3>
+                </div>
+                <select id="countFeatureSelect" onchange="renderCountPlotChart()" class="text-xs bg-white text-slate-800 border border-slate-300 rounded px-2.5 py-1 font-semibold">
                 </select>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Occurrence counts for discrete categorical features.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Occurrence counts and proportions across discrete categories.</p>
+              <div class="relative h-64">
                 <canvas id="canvasCountplot"></canvas>
               </div>
             </div>
-            <div id="countPlotFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="countPlotFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
           <!-- 5. Correlation Heatmap (Full Width) -->
-          <div class="card-base p-4 flex flex-col justify-between lg:col-span-2">
+          <div class="panel-card p-5 flex flex-col justify-between lg:col-span-2">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">5. Correlation Heatmap</h3>
-                <span class="text-xs text-gray-500 font-mono">Pearson (-1.00 to +1.00)</span>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">5</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Correlation Heatmap</h3>
+                </div>
+                <span class="text-xs font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Pearson Matrix (-1.00 to +1.00)</span>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Correlation matrix between numerical features.</p>
-              <div class="overflow-x-auto rounded border border-gray-200 bg-white p-3 min-h-[260px]">
+              <p class="text-xs text-slate-500 mb-4">Correlation matrix identifying highly collinear features.</p>
+              <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white p-4 min-h-[280px]">
                 <div id="corrHeatmapContainer" class="flex flex-col items-center justify-center"></div>
               </div>
             </div>
           </div>
 
           <!-- 6. Scatter Plots -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">6. Scatter Plot</h3>
-                <select id="scatterPairSelect" onchange="renderScatterChart()" class="text-xs bg-white text-gray-800 border border-gray-300 rounded px-2 py-1 max-w-[200px] truncate">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">6</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Scatter Plot (Bivariate Relationship)</h3>
+                </div>
+                <select id="scatterPairSelect" onchange="renderScatterChart()" class="text-xs bg-white text-slate-800 border border-slate-300 rounded px-2.5 py-1 font-semibold max-w-[210px] truncate">
                 </select>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Bivariate continuous relationship and trends.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Analyze relationships, clusters, and trends between pairs of variables.</p>
+              <div class="relative h-64">
                 <canvas id="canvasScatter"></canvas>
               </div>
             </div>
-            <div id="scatterFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="scatterFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
           <!-- 7. Target Distribution Plot -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">7. Target Distribution Plot</h3>
-                <span id="targetPlotTypeBadge" class="text-xs text-gray-500 font-medium">Classification</span>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">7</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Target Distribution Plot</h3>
+                </div>
+                <span id="targetPlotTypeBadge" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Classification</span>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Target class breakdown or continuous target density.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Class balance breakdown or continuous regression target density.</p>
+              <div class="relative h-64">
                 <canvas id="canvasTargetDist"></canvas>
               </div>
             </div>
-            <div id="targetPlotFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="targetPlotFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
-          <!-- 8. Pair Plot (Full Width) -->
-          <div class="card-base p-4 flex flex-col justify-between lg:col-span-2">
+          <!-- 8. Pair Plot Matrix (Full Width) -->
+          <div class="panel-card p-5 flex flex-col justify-between lg:col-span-2">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">8. Pair Plot Matrix</h3>
-                <span class="text-xs text-gray-500">Multi-Feature Matrix</span>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">8</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Pair Plot Matrix (Multi-Feature Interaction)</h3>
+                </div>
+                <span class="text-xs text-slate-500 font-mono">Simultaneous Pairwise Analysis</span>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Simultaneous pairwise scatter plots across top numerical features.</p>
-              <div id="pairplotGridContainer" class="p-3 rounded border border-gray-200 bg-gray-50 overflow-x-auto min-h-[260px]"></div>
+              <p class="text-xs text-slate-500 mb-4">Analyze pairwise relationships across top numerical features simultaneously.</p>
+              <div id="pairplotGridContainer" class="p-4 rounded-lg border border-slate-200 bg-slate-50 overflow-x-auto min-h-[280px]"></div>
             </div>
           </div>
 
           <!-- 9. Feature vs Target -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">9. Feature vs Target</h3>
-                <select id="featVsTargetSelect" onchange="renderFeatVsTargetChart()" class="text-xs bg-white text-gray-800 border border-gray-300 rounded px-2 py-1 max-w-[190px] truncate">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">9</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Feature vs Target Interaction</h3>
+                </div>
+                <select id="featVsTargetSelect" onchange="renderFeatVsTargetChart()" class="text-xs bg-white text-slate-800 border border-slate-300 rounded px-2.5 py-1 font-semibold max-w-[200px] truncate">
                 </select>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Feature variation grouped by target class.</p>
-              <div class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Examine how feature distributions shift across target classes.</p>
+              <div class="relative h-64">
                 <canvas id="canvasFeatVsTarget"></canvas>
               </div>
             </div>
-            <div id="featVsTargetFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="featVsTargetFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
-          <!-- 10. Time-Series / Trend -->
-          <div class="card-base p-4 flex flex-col justify-between">
+          <!-- 10. Time-Series / Sequence -->
+          <div class="panel-card p-5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">10. Time-Series / Sequence</h3>
-                <span id="tsStatusTag" class="text-xs text-gray-500">Sequential</span>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">10</span>
+                  <h3 class="font-bold text-slate-900 text-sm">Time-Series / Sequential Trend</h3>
+                </div>
+                <span id="tsStatusTag" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Timeline</span>
               </div>
-              <p class="text-xs text-gray-500 mb-3">Chronological or sequential order behavior.</p>
-              <div id="tsCanvasContainer" class="relative h-60">
+              <p class="text-xs text-slate-500 mb-4">Inspect temporal trends, seasonality, and concept drift over time.</p>
+              <div id="tsCanvasContainer" class="relative h-64">
                 <canvas id="canvasTimeSeries"></canvas>
               </div>
             </div>
-            <div id="tsFooter" class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600"></div>
+            <div id="tsFooter" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-mono"></div>
           </div>
 
         </div>
@@ -540,18 +638,19 @@
       <!-- TAB 3: RAW DATA                                           -->
       <!-- ========================================================= -->
       <div id="tabContentRawData" class="hidden space-y-4">
-        <div class="card-base p-4">
-          <div class="flex items-center justify-between mb-3">
+        <div class="panel-card p-5">
+          <div class="flex items-center justify-between mb-4">
             <div>
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-700">Raw Data Snapshot (First 15 Rows)</h3>
-              <p class="text-xs text-gray-500">Review raw input records and null values</p>
+              <h3 class="font-bold text-slate-900 text-sm">Raw Data Snapshot (First 15 Rows)</h3>
+              <p class="text-xs text-slate-500">Inspect raw inputs, values, and missing fields</p>
             </div>
-            <button onclick="downloadCleanReport()" class="px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-medium text-gray-700 shadow-2xs">
-              Export Audit JSON
+            <button onclick="downloadCleanReport()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-600"></i>
+              <span>Export Audit JSON</span>
             </button>
           </div>
-          <div class="overflow-x-auto rounded border border-gray-200">
-            <table class="saas-table">
+          <div class="overflow-x-auto rounded-lg border border-slate-200">
+            <table class="data-grid-table">
               <thead id="rawTableHeader"></thead>
               <tbody id="rawTableBody"></tbody>
             </table>
@@ -562,19 +661,19 @@
     </section>
 
     <!-- LOADING OVERLAY -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900/20 backdrop-blur-2xs z-50 hidden flex-col items-center justify-center">
-      <div class="p-5 rounded-lg bg-white border border-gray-200 shadow-xl flex flex-col items-center max-w-xs text-center">
-        <div class="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-3"></div>
-        <div class="text-xs font-medium text-gray-900">Processing Dataset</div>
-        <div class="text-[11px] text-gray-500 mt-0.5" id="loadingStatusText">Analyzing...</div>
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/25 backdrop-blur-2xs z-50 hidden flex-col items-center justify-center">
+      <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-2xl flex flex-col items-center max-w-xs text-center">
+        <div class="w-8 h-8 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3.5"></div>
+        <div class="text-sm font-bold text-slate-900">Profiling Dataset</div>
+        <div class="text-xs text-slate-500 mt-1 font-mono" id="loadingStatusText">Analyzing...</div>
       </div>
     </div>
 
   </main>
 
   <!-- FOOTER -->
-  <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-auto">
-    DataProfiler — Open Source Exploratory Data Analysis & Visualization
+  <footer class="bg-white border-t border-slate-200 py-3.5 text-center text-xs text-slate-500 mt-auto font-mono">
+    DataProfiler Enterprise • Exploratory Data Intelligence Suite
   </footer>
 
   <script src="app.js"></script>
