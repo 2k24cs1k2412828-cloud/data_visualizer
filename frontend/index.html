@@ -86,7 +86,7 @@
         <img src="qubrix_icon.png" alt="QUBRIX" class="h-8 w-auto object-contain">
         <div class="flex flex-col">
           <span class="font-extrabold text-base text-gray-900 tracking-tight leading-none">QUBRIX</span>
-          <span class="text-[9px] font-medium text-gray-400 tracking-widest uppercase">Explore • Analyze • Discover</span>
+          <span class="text-[9px] font-semibold text-gray-500 tracking-widest uppercase">Explore • Analyze • Discover</span>
         </div>
       </a>
 
@@ -106,7 +106,7 @@
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-500"></i>
           </button>
           <div id="sampleMenu" class="hidden absolute right-0 mt-1.5 w-56 rounded-md bg-white border border-gray-200 shadow-lg py-1 z-50">
-            <div class="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Example Datasets</div>
+            <div class="px-3 py-1.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Example Datasets</div>
             <button onclick="loadSample('customer_churn')" class="w-full text-left px-3 py-2 hover:bg-gray-50 text-xs text-gray-700 flex flex-col">
               <span class="font-medium text-gray-900">Customer Churn</span>
               <span class="text-[11px] text-gray-500">Classification task with nulls & outliers</span>
@@ -169,13 +169,13 @@
       <!-- Overview of Features Grid -->
       <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
         <div class="card-base p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-1">Part 1: 10 Investigations</h3>
+          <h2 class="text-sm font-semibold text-gray-900 mb-1">Part 1: 10 Investigations</h2>
           <p class="text-xs text-gray-600 leading-relaxed">
             Dataset shape, inferred data types, null counts & percentage, exact & partial duplicates, five-number summary stats, cardinality & ID flags, target distribution, Tukey IQR outliers, correlation matrix, and data quality checks.
           </p>
         </div>
         <div class="card-base p-4">
-          <h3 class="text-sm font-semibold text-gray-900 mb-1">Part 2: 10 Core Visualizations</h3>
+          <h2 class="text-sm font-semibold text-gray-900 mb-1">Part 2: 10 Core Visualizations</h2>
           <p class="text-xs text-gray-600 leading-relaxed">
             Missing values heatmap, numerical histograms, box plots, categorical count plots, correlation heatmap, scatter plots, target distribution plot, pair plot matrix, feature vs target plots, and time-series / sequence plots.
           </p>
@@ -642,19 +642,19 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
+  <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-600 mt-auto">
     <div class="flex items-center justify-center space-x-2">
       <img src="qubrix_icon.png" alt="QUBRIX" class="h-4 w-auto opacity-70">
       <span class="font-semibold text-gray-700">QUBRIX</span>
       <span>—</span>
-      <span class="text-gray-400">Explore • Analyze • Discover</span>
+      <span class="text-gray-500">Explore • Analyze • Discover</span>
     </div>
   </footer>
 
   <!-- ========================================================= -->
   <!-- USER PROFILE & ANALYSIS HISTORY MODAL                     -->
   <!-- ========================================================= -->
-  <div id="profileHistoryModal" class="modal-overlay hidden">
+  <div id="profileHistoryModal" role="dialog" aria-modal="true" aria-labelledby="profileHistoryModalTitle" class="modal-overlay hidden">
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
       
       <!-- Modal Header -->
@@ -664,11 +664,11 @@
             <i data-lucide="user" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="text-sm font-bold text-gray-900">User Profile & Analysis History</h3>
+            <h3 id="profileHistoryModalTitle" class="text-sm font-bold text-gray-900">User Profile & Analysis History</h3>
             <p class="text-[11px] text-gray-500">Manage your account and view previous dataset investigations</p>
           </div>
         </div>
-        <button onclick="closeProfileHistoryModal()" class="text-gray-400 hover:text-gray-600 transition p-1">
+        <button onclick="closeProfileHistoryModal()" aria-label="Close profile and history modal" class="text-gray-400 hover:text-gray-600 transition p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
@@ -755,7 +755,7 @@
 
       <!-- Modal Footer -->
       <div class="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-        <span class="text-[11px] text-gray-400">QUBRIX Cloud Sync</span>
+        <span class="text-[11px] text-gray-500">QUBRIX Cloud Sync</span>
         <button onclick="closeProfileHistoryModal()" class="px-4 py-1.5 rounded bg-gray-900 hover:bg-black text-white text-xs font-medium transition shadow-2xs">
           Close
         </button>
@@ -767,12 +767,12 @@
   <!-- ========================================================= -->
   <!-- AUTHENTICATION MODAL (SIGN IN / CREATE ACCOUNT)           -->
   <!-- ========================================================= -->
-  <div id="authModal" class="modal-overlay hidden">
+  <div id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" class="modal-overlay hidden">
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-sm w-full overflow-hidden">
       
       <!-- Modal Header -->
       <div class="p-6 pb-4 border-b border-gray-100 text-center relative">
-        <button onclick="closeAuthModal()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition">
+        <button onclick="closeAuthModal()" aria-label="Close authentication modal" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
         <div class="flex items-center justify-center space-x-2 mb-2">
@@ -859,14 +859,14 @@
   <!-- ========================================================= -->
   <!-- ONBOARDING MODAL (PROFILE SETUP: NAME, OCCUPATION, AVATAR) -->
   <!-- ========================================================= -->
-  <div id="onboardingModal" class="modal-overlay hidden">
+  <div id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingModalTitle" class="modal-overlay hidden">
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full overflow-hidden">
       
       <div class="p-6 border-b border-gray-100 text-center">
         <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 flex items-center justify-center text-gray-700 mb-2">
           <i data-lucide="user-check" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-sm font-bold text-gray-900">Complete Your QUBRIX Profile</h3>
+        <h3 id="onboardingModalTitle" class="text-sm font-bold text-gray-900">Complete Your QUBRIX Profile</h3>
         <p class="text-xs text-gray-500 mt-1">Tell us a little bit about yourself to tailor your analytics experience.</p>
       </div>
 
