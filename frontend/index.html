@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataProfiler — Exploratory Data Analysis & Visualizations</title>
+  <title>QUBRIX — Explore • Analyze • Discover</title>
+  <link rel="icon" type="image/png" href="qubrix_icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,11 +31,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
       
       <!-- Brand -->
-      <a href="/" onclick="location.reload(); return false;" class="flex items-center space-x-2.5 cursor-pointer">
-        <div class="w-7 h-7 rounded bg-gray-900 flex items-center justify-center text-white font-semibold text-sm">
-          DP
+      <a href="/" onclick="location.reload(); return false;" class="flex items-center space-x-2.5 cursor-pointer group">
+        <img src="qubrix_icon.png" alt="QUBRIX" class="h-8 w-auto object-contain">
+        <div class="flex flex-col">
+          <span class="font-extrabold text-base text-gray-900 tracking-tight leading-none">QUBRIX</span>
+          <span class="text-[9px] font-medium text-gray-400 tracking-widest uppercase">Explore • Analyze • Discover</span>
         </div>
-        <span class="font-bold text-base text-gray-900 tracking-tight">DataProfiler</span>
       </a>
 
       <!-- Right controls -->
@@ -573,8 +575,13 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-auto">
-    DataProfiler — Open Source Exploratory Data Analysis & Visualization
+  <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
+    <div class="flex items-center justify-center space-x-2">
+      <img src="qubrix_icon.png" alt="QUBRIX" class="h-4 w-auto opacity-70">
+      <span class="font-semibold text-gray-700">QUBRIX</span>
+      <span>—</span>
+      <span class="text-gray-400">Explore • Analyze • Discover</span>
+    </div>
   </footer>
 
   <script src="app.js"></script>

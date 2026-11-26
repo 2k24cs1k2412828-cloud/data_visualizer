@@ -1110,6 +1110,6 @@ function downloadCleanReport() {
   const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalData, null, 2));
   const dlAnchorElem = document.createElement('a');
   dlAnchorElem.setAttribute("href", jsonStr);
-  dlAnchorElem.setAttribute("download", `data_profiler_report_${Date.now()}.json`);
+  dlAnchorElem.setAttribute("download", `qubrix_audit_${Date.now()}.json`);
   dlAnchorElem.click();
 }
