@@ -1,41 +1,30 @@
 /**
- * DataProfiler - Executive Visual Analytics Engine
- * Professional multi-color chart palettes (Datadog / Tableau / Snowflake inspired)
+ * DataProfiler - Clean SaaS UI & Chart Orchestration
  */
 
 let globalData = null;
 let chartInstances = {};
 
-// Executive Enterprise Palette
-const PALETTE = {
-  indigo: '#4f46e5',
-  indigoFill: 'rgba(79, 70, 229, 0.75)',
-  sky: '#0284c7',
-  skyFill: 'rgba(2, 132, 199, 0.75)',
-  teal: '#0d9488',
-  tealFill: 'rgba(13, 148, 136, 0.75)',
-  amber: '#d97706',
-  amberFill: 'rgba(217, 119, 6, 0.75)',
-  rose: '#e11d48',
-  roseFill: 'rgba(225, 29, 72, 0.75)',
-  violet: '#7c3aed',
-  violetFill: 'rgba(124, 58, 237, 0.75)',
-  slate: '#475569',
-  slateFill: 'rgba(71, 85, 105, 0.75)',
-  grid: '#f1f5f9',
-  axis: '#64748b',
-  categorical: [
-    '#4f46e5', '#0284c7', '#0d9488', '#d97706', '#7c3aed', '#e11d48', '#059669', '#ea580c'
-  ]
+// Clean SaaS Chart Palette (Dark slate, subdued blues, warm grays)
+const SAAS_COLORS = {
+  primary: '#1f2937',      // gray-800
+  primaryFill: 'rgba(31, 41, 55, 0.85)',
+  blue: '#2563eb',         // blue-600
+  blueFill: 'rgba(37, 99, 235, 0.75)',
+  emerald: '#059669',      // emerald-600
+  amber: '#d97706',        // amber-600
+  rose: '#e11d48',         // rose-600
+  grid: '#f3f4f6',         // gray-100
+  text: '#6b7280'          // gray-500
 };
 
-// Initial DOM Setup: Strictly stays on Landing Page
+// On DOM Loaded: strictly DO NOT auto-load any dummy dataset!
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
   setupUploadListeners();
 });
 
-// Setup click and drop listeners
+// Setup drag and drop & click listeners
 function setupUploadListeners() {
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileUploadInput');
@@ -56,14 +45,14 @@ function setupUploadListeners() {
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-indigo-500', 'bg-indigo-50/20');
+        dropZone.classList.add('border-gray-500', 'bg-gray-50');
       });
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/20');
+        dropZone.classList.remove('border-gray-500', 'bg-gray-50');
       });
     });
 
@@ -80,14 +69,6 @@ function setupUploadListeners() {
       handleFileUpload(e.target.files[0]);
     }
   });
-}
-
-function resetToHome() {
-  document.getElementById('dashboardState').classList.add('hidden');
-  document.getElementById('activeFileBadge').classList.add('hidden');
-  document.getElementById('activeFileBadge').classList.remove('flex');
-  document.getElementById('heroUploadState').classList.remove('hidden');
-  globalData = null;
 }
 
 function showLoading(show, message = "Analyzing Dataset...") {
@@ -131,7 +112,7 @@ async function handleFileUpload(file) {
 
 // Load sample dataset
 async function loadSample(sampleName) {
-  showLoading(true, `Loading demo benchmark dataset...`);
+  showLoading(true, `Loading demo dataset...`);
   try {
     const res = await fetch(`/api/sample/${sampleName}`);
     const result = await res.json();
@@ -175,10 +156,10 @@ function switchMainTab(tab) {
     const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
     const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
     if (t === tab) {
-      btn.className = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1.5 bg-white text-indigo-700 shadow-xs";
+      btn.className = "px-3 py-1.5 rounded text-xs font-medium transition bg-gray-900 text-white";
       content.classList.remove('hidden');
     } else {
-      btn.className = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900";
+      btn.className = "px-3 py-1.5 rounded text-xs font-medium transition text-gray-600 hover:text-gray-900";
       content.classList.add('hidden');
     }
   });
@@ -194,7 +175,7 @@ function switchMainTab(tab) {
 function renderAppWithData(filename, data) {
   globalData = data;
 
-  // Reveal dashboard, hide hero
+  // Hide home landing screen, show dashboard
   document.getElementById('heroUploadState').classList.add('hidden');
   document.getElementById('dashboardState').classList.remove('hidden');
   
@@ -223,10 +204,10 @@ function renderAppWithData(filename, data) {
 
   // Render Top 4 Summary Cards
   document.getElementById('cardShapeVal').textContent = `${inv.shape.rows.toLocaleString()} × ${inv.shape.columns}`;
-  document.getElementById('cardShapeSub').textContent = `${(inv.shape.memory_bytes / 1024).toFixed(1)} KB footprint`;
+  document.getElementById('cardShapeSub').textContent = `${(inv.shape.memory_bytes / 1024).toFixed(1)} KB memory`;
 
   document.getElementById('cardMissingVal').textContent = `${inv.missing_values.total_missing_pct}%`;
-  document.getElementById('cardMissingSub').textContent = `${inv.missing_values.total_missing_cells} null cells in ${inv.missing_values.columns_with_missing} columns`;
+  document.getElementById('cardMissingSub').textContent = `${inv.missing_values.total_missing_cells} null cells in ${inv.missing_values.columns_with_missing} cols`;
 
   document.getElementById('cardDupVal').textContent = `${inv.duplicate_records.exact_duplicates}`;
   document.getElementById('cardDupSub').textContent = `${inv.duplicate_records.exact_duplicate_pct}% row repetition`;
@@ -234,7 +215,7 @@ function renderAppWithData(filename, data) {
   const qScore = inv.data_quality_leakage.cleanliness_score;
   const qValEl = document.getElementById('cardQualityVal');
   qValEl.textContent = `${qScore}/100`;
-  document.getElementById('cardQualitySub').textContent = `${inv.data_quality_leakage.issue_count} quality checks flagged`;
+  document.getElementById('cardQualitySub').textContent = `${inv.data_quality_leakage.issue_count} quality notices`;
 
   // Render Part 1: 10 Investigations
   renderPart1Investigations(data);
@@ -252,7 +233,7 @@ function renderAppWithData(filename, data) {
 }
 
 // =========================================================
-// PART 1: 10 INVESTIGATIONS RENDERERS
+// PART 1: 10 INVESTIGATIONS RENDERERS (CLEAN PROFESSIONAL)
 // =========================================================
 function renderPart1Investigations(data) {
   const inv = data.investigations;
@@ -260,25 +241,21 @@ function renderPart1Investigations(data) {
   // 1. Dataset Shape
   const shapeContainer = document.getElementById('invShapeContent');
   shapeContainer.innerHTML = `
-    <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Observations (Rows)</div>
-      <div class="text-xl font-black font-mono text-slate-900 mt-1">${inv.shape.rows.toLocaleString()}</div>
-      <div class="text-[11px] text-slate-500 mt-0.5">Sample volume</div>
+    <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-[11px] text-gray-500 font-medium">Rows (Observations)</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">${inv.shape.rows.toLocaleString()}</div>
     </div>
-    <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Features (Columns)</div>
-      <div class="text-xl font-black font-mono text-slate-900 mt-1">${inv.shape.columns}</div>
-      <div class="text-[11px] text-slate-500 mt-0.5">Feature breadth</div>
+    <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-[11px] text-gray-500 font-medium">Columns (Features)</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">${inv.shape.columns}</div>
     </div>
-    <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Matrix Cells</div>
-      <div class="text-xl font-black font-mono text-slate-900 mt-1">${inv.shape.total_cells.toLocaleString()}</div>
-      <div class="text-[11px] text-slate-500 mt-0.5">Data points</div>
+    <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-[11px] text-gray-500 font-medium">Matrix Cells</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">${inv.shape.total_cells.toLocaleString()}</div>
     </div>
-    <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Memory Allocation</div>
-      <div class="text-xl font-black font-mono text-slate-900 mt-1">${(inv.shape.memory_bytes / 1024).toFixed(1)} KB</div>
-      <div class="text-[11px] text-slate-500 mt-0.5">In-memory size</div>
+    <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-[11px] text-gray-500 font-medium">Memory Usage</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">${(inv.shape.memory_bytes / 1024).toFixed(1)} KB</div>
     </div>
   `;
 
@@ -287,7 +264,7 @@ function renderPart1Investigations(data) {
   dtypePills.innerHTML = '';
   Object.entries(inv.data_types.type_counts).forEach(([t, count]) => {
     const pill = document.createElement('span');
-    pill.className = `px-2 py-0.5 rounded text-[11px] font-mono font-semibold ${getTypeBadgeClass(t)}`;
+    pill.className = "text-xs text-gray-600 bg-white border border-gray-200 px-2 py-0.5 rounded";
     pill.textContent = `${t}: ${count}`;
     dtypePills.appendChild(pill);
   });
@@ -295,10 +272,10 @@ function renderPart1Investigations(data) {
   const dtypeBody = document.getElementById('dtypeTableBody');
   dtypeBody.innerHTML = '';
   Object.entries(inv.data_types.column_types).forEach(([col, t]) => {
-    let prep = "Standard / Robust Scaling";
-    let compat = "Direct numerical input";
+    let prep = "Standard scaling / MinMax scaling";
+    let compat = "Direct numeric input";
     if (t.includes("Categorical")) {
-      prep = "One-Hot / Target Encoding";
+      prep = "One-Hot / Target / Ordinal Encoding";
       compat = "Requires encoding";
     } else if (t === "Datetime") {
       prep = "Extract Year, Month, Day, DayOfWeek";
@@ -310,10 +287,10 @@ function renderPart1Investigations(data) {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-bold text-slate-900 font-mono text-xs">${col}</td>
-      <td><span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium ${getTypeBadgeClass(t)}">${t}</span></td>
-      <td class="text-slate-600 text-xs">${prep}</td>
-      <td class="text-slate-600 text-xs">${compat}</td>
+      <td class="font-medium text-gray-900">${col}</td>
+      <td><span class="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">${t}</span></td>
+      <td class="text-gray-600">${prep}</td>
+      <td class="text-gray-600">${compat}</td>
     `;
     dtypeBody.appendChild(tr);
   });
@@ -323,22 +300,22 @@ function renderPart1Investigations(data) {
   const missingBody = document.getElementById('missingTableBody');
   missingBody.innerHTML = '';
   inv.missing_values.details.forEach(item => {
-    let rec = "Clean feature — No action";
+    let rec = "Clean feature";
     if (item.missing_percentage > 50) rec = "Drop column (Too sparse)";
-    else if (item.missing_percentage > 10) rec = "Impute via Median/KNN + Missing indicator";
+    else if (item.missing_percentage > 10) rec = "Impute via Median/KNN + Missing flag";
     else if (item.missing_percentage > 0) rec = "Mean/Median (numeric) or Mode (categorical)";
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-semibold text-slate-900 font-mono text-xs">${item.column}</td>
-      <td class="text-slate-700 font-mono text-xs">${item.missing_count}</td>
-      <td class="font-bold font-mono text-xs ${item.missing_percentage > 0 ? (item.missing_percentage > 20 ? 'text-rose-600' : 'text-amber-600') : 'text-slate-400'}">${item.missing_percentage}%</td>
+      <td class="font-medium text-gray-900">${item.column}</td>
+      <td class="text-gray-700 font-mono text-xs">${item.missing_count}</td>
+      <td class="font-medium text-xs ${item.missing_percentage > 0 ? 'text-gray-900 font-bold' : 'text-gray-400'}">${item.missing_percentage}%</td>
       <td>
-        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-          <div class="h-full ${item.missing_percentage > 20 ? 'bg-rose-500' : (item.missing_percentage > 0 ? 'bg-amber-500' : 'bg-emerald-500')}" style="width: ${Math.max(item.missing_percentage, 0)}%"></div>
+        <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+          <div class="h-full ${item.missing_percentage > 20 ? 'bg-gray-800' : 'bg-gray-500'}" style="width: ${Math.max(item.missing_percentage, 0)}%"></div>
         </div>
       </td>
-      <td class="text-xs text-slate-600">${rec}</td>
+      <td class="text-xs text-gray-600">${rec}</td>
     `;
     missingBody.appendChild(tr);
   });
@@ -349,17 +326,17 @@ function renderPart1Investigations(data) {
   dupBadge.textContent = inv.duplicate_records.exact_duplicates > 0 ? `${inv.duplicate_records.exact_duplicates} Duplicates` : "No Duplicates";
   
   dupBox.innerHTML = `
-    <div class="flex-1 p-4 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Exact Duplicate Rows</div>
-      <div class="text-2xl font-black font-mono ${inv.duplicate_records.exact_duplicates > 0 ? 'text-rose-600' : 'text-emerald-600'} mt-1">
+    <div class="flex-1 p-3.5 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-xs text-gray-500 font-medium">Exact Duplicate Rows</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">
         ${inv.duplicate_records.exact_duplicates} (${inv.duplicate_records.exact_duplicate_pct}%)
       </div>
-      <div class="text-xs text-slate-600 mt-1.5">${inv.duplicate_records.recommendation}</div>
+      <div class="text-xs text-gray-600 mt-1.5">${inv.duplicate_records.recommendation}</div>
     </div>
-    <div class="flex-1 p-4 rounded-lg border border-slate-200 bg-slate-50/70">
-      <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Partial Duplicate Subsets</div>
-      <div class="text-2xl font-black font-mono text-slate-900 mt-1">${inv.duplicate_records.partial_duplicates}</div>
-      <div class="text-xs text-slate-600 mt-1.5">Identical records across key predictive columns</div>
+    <div class="flex-1 p-3.5 rounded border border-gray-200 bg-gray-50/50">
+      <div class="text-xs text-gray-500 font-medium">Partial Overlaps</div>
+      <div class="text-xl font-bold text-gray-900 mt-1">${inv.duplicate_records.partial_duplicates}</div>
+      <div class="text-xs text-gray-600 mt-1.5">Repeated records across core feature dimensions</div>
     </div>
   `;
 
@@ -369,17 +346,17 @@ function renderPart1Investigations(data) {
   inv.statistical_summary.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-sans font-bold text-slate-900 text-xs">${s.column}</td>
+      <td class="font-sans font-medium text-gray-900">${s.column}</td>
       <td>${s.count}</td>
-      <td class="font-bold text-indigo-600">${s.mean}</td>
-      <td class="text-slate-500">${s.std}</td>
+      <td class="font-semibold text-gray-900">${s.mean}</td>
+      <td class="text-gray-500">${s.std}</td>
       <td>${s.min}</td>
       <td>${s.q25}</td>
-      <td class="font-bold text-emerald-600">${s.median}</td>
+      <td class="font-semibold text-gray-900">${s.median}</td>
       <td>${s.q75}</td>
       <td>${s.max}</td>
       <td>${s.iqr}</td>
-      <td class="${Math.abs(s.skew) > 1 ? 'text-amber-600 font-bold' : 'text-slate-500'}">${s.skew}</td>
+      <td>${s.skew}</td>
     `;
     statsBody.appendChild(tr);
   });
@@ -390,11 +367,11 @@ function renderPart1Investigations(data) {
   inv.cardinality.forEach(c => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-semibold text-slate-900 font-mono text-xs">${c.column}</td>
-      <td class="font-mono text-xs text-slate-700">${c.unique_count}</td>
-      <td class="font-mono text-xs text-slate-700 font-semibold">${(c.uniqueness_ratio * 100).toFixed(1)}%</td>
-      <td><span class="text-xs px-2 py-0.5 rounded font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">${c.type_classification}</span></td>
-      <td class="text-slate-500 text-xs font-mono max-w-xs truncate">${c.sample_values.join(', ')}</td>
+      <td class="font-medium text-gray-900">${c.column}</td>
+      <td class="font-mono text-xs text-gray-700">${c.unique_count}</td>
+      <td class="font-mono text-xs text-gray-700">${(c.uniqueness_ratio * 100).toFixed(1)}%</td>
+      <td><span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">${c.type_classification}</span></td>
+      <td class="text-gray-500 text-xs font-mono max-w-xs truncate">${c.sample_values.join(', ')}</td>
     `;
     cardBody.appendChild(tr);
   });
@@ -406,14 +383,11 @@ function renderPart1Investigations(data) {
     let classHtml = '';
     tInfo.classes.forEach(cls => {
       classHtml += `
-        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
-            <span class="font-bold text-slate-900 text-sm font-mono">${cls.class}</span>
-          </div>
+        <div class="p-3 rounded border border-gray-200 bg-gray-50/50 flex items-center justify-between">
+          <span class="font-medium text-gray-900 text-sm">${cls.class}</span>
           <div class="text-right">
-            <span class="font-bold text-slate-900 text-sm font-mono">${cls.count}</span>
-            <span class="text-xs text-slate-500 ml-1">(${cls.percentage}%)</span>
+            <span class="font-bold text-gray-900 text-sm">${cls.count}</span>
+            <span class="text-xs text-gray-500 ml-1">(${cls.percentage}%)</span>
           </div>
         </div>
       `;
@@ -421,12 +395,12 @@ function renderPart1Investigations(data) {
     targetBody.innerHTML = `
       <div class="space-y-3">
         <div class="flex items-center justify-between">
-          <div class="text-xs text-slate-700 font-bold uppercase tracking-wide">Target: <span class="text-slate-900 font-extrabold">${tInfo.column}</span></div>
-          <span class="text-xs font-semibold ${tInfo.is_imbalanced ? 'text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded' : 'text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded'}">
+          <div class="text-xs text-gray-700 font-medium">Target: <strong class="text-gray-900">${tInfo.column}</strong></div>
+          <span class="text-xs font-medium ${tInfo.is_imbalanced ? 'text-amber-700' : 'text-gray-700'}">
             ${tInfo.is_imbalanced ? 'Imbalanced Classes' : 'Balanced Distribution'}
           </span>
         </div>
-        <p class="text-xs text-slate-600">${tInfo.recommendation}</p>
+        <p class="text-xs text-gray-600">${tInfo.recommendation}</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-2">
           ${classHtml}
         </div>
@@ -435,25 +409,25 @@ function renderPart1Investigations(data) {
   } else {
     targetBody.innerHTML = `
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-          <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Target Variable</div>
-          <div class="text-lg font-bold font-mono text-slate-900 mt-1">${tInfo.column}</div>
-          <div class="text-xs text-indigo-600 mt-0.5 font-semibold">Continuous Regression</div>
+        <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+          <div class="text-xs text-gray-500 font-medium">Target Feature</div>
+          <div class="text-lg font-bold text-gray-900 mt-1">${tInfo.column}</div>
+          <div class="text-xs text-gray-500 mt-0.5">Continuous Regression</div>
         </div>
-        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-          <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Mean Value</div>
-          <div class="text-lg font-bold font-mono text-slate-900 mt-1">${tInfo.mean}</div>
-          <div class="text-xs text-slate-500 mt-0.5">Median: ${tInfo.median}</div>
+        <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+          <div class="text-xs text-gray-500 font-medium">Mean Value</div>
+          <div class="text-lg font-bold text-gray-900 mt-1">${tInfo.mean}</div>
+          <div class="text-xs text-gray-500 mt-0.5">Median: ${tInfo.median}</div>
         </div>
-        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-          <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Range Spread</div>
-          <div class="text-lg font-bold font-mono text-slate-900 mt-1">${tInfo.min} - ${tInfo.max}</div>
-          <div class="text-xs text-slate-500 mt-0.5">Std Dev: ${tInfo.std}</div>
+        <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+          <div class="text-xs text-gray-500 font-medium">Range Spread</div>
+          <div class="text-lg font-bold text-gray-900 mt-1">${tInfo.min} - ${tInfo.max}</div>
+          <div class="text-xs text-gray-500 mt-0.5">Std Dev: ${tInfo.std}</div>
         </div>
-        <div class="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70">
-          <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Skewness</div>
-          <div class="text-lg font-bold font-mono text-slate-900 mt-1">${tInfo.skew}</div>
-          <div class="text-xs text-slate-500 mt-0.5">${Math.abs(tInfo.skew) > 1 ? 'Skewed Distribution' : 'Symmetric'}</div>
+        <div class="p-3 rounded border border-gray-200 bg-gray-50/50">
+          <div class="text-xs text-gray-500 font-medium">Skewness</div>
+          <div class="text-lg font-bold text-gray-900 mt-1">${tInfo.skew}</div>
+          <div class="text-xs text-gray-500 mt-0.5">${Math.abs(tInfo.skew) > 1 ? 'Skewed Distribution' : 'Symmetric'}</div>
         </div>
       </div>
     `;
@@ -470,13 +444,13 @@ function renderPart1Investigations(data) {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="font-bold text-slate-900 font-mono text-xs">${o.column}</td>
-      <td class="font-mono text-xs text-slate-700">${o.outlier_count}</td>
-      <td class="font-mono text-xs font-bold ${o.outlier_pct > 3 ? 'text-rose-600' : 'text-slate-700'}">${o.outlier_pct}%</td>
-      <td class="text-slate-600 font-mono text-xs">${o.lower_bound}</td>
-      <td class="text-slate-600 font-mono text-xs">${o.upper_bound}</td>
-      <td><span class="text-xs px-2 py-0.5 rounded font-mono font-medium ${o.severity.includes('High') ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">${o.severity}</span></td>
-      <td class="text-xs text-slate-600 font-sans">${treat}</td>
+      <td class="font-medium text-gray-900">${o.column}</td>
+      <td class="font-mono text-xs text-gray-700">${o.outlier_count}</td>
+      <td class="font-mono text-xs text-gray-700 font-bold">${o.outlier_pct}%</td>
+      <td class="text-gray-600 font-mono text-xs">${o.lower_bound}</td>
+      <td class="text-gray-600 font-mono text-xs">${o.upper_bound}</td>
+      <td><span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">${o.severity}</span></td>
+      <td class="text-xs text-gray-600 font-sans">${treat}</td>
     `;
     outBody.appendChild(tr);
   });
@@ -485,31 +459,31 @@ function renderPart1Investigations(data) {
   const relBody = document.getElementById('featureRelBody');
   const pairs = inv.feature_relationships.top_correlated_pairs || [];
   if (pairs.length === 0) {
-    relBody.innerHTML = `<div class="col-span-2 text-xs text-slate-500">Not enough numerical features for cross-correlation.</div>`;
+    relBody.innerHTML = `<div class="col-span-2 text-xs text-gray-500">Not enough numerical features for cross-correlation.</div>`;
   } else {
     let pairCardsHtml = pairs.slice(0, 6).map(p => `
-      <div class="p-3 rounded-lg border border-slate-200 bg-slate-50/70 flex items-center justify-between">
+      <div class="p-2.5 rounded border border-gray-200 bg-gray-50/50 flex items-center justify-between">
         <div>
-          <div class="text-xs font-bold text-slate-900 font-mono">${p.feature_1} ↔ ${p.feature_2}</div>
-          <div class="text-[11px] text-slate-500">${Math.abs(p.correlation) > 0.7 ? 'Strong linear correlation' : 'Moderate correlation'}</div>
+          <div class="text-xs font-semibold text-gray-900">${p.feature_1} & ${p.feature_2}</div>
+          <div class="text-[11px] text-gray-500">${Math.abs(p.correlation) > 0.7 ? 'Strong correlation' : 'Moderate correlation'}</div>
         </div>
-        <div class="font-mono font-extrabold text-sm ${p.correlation > 0 ? 'text-teal-600' : 'text-rose-600'}">${p.correlation > 0 ? '+' : ''}${p.correlation}</div>
+        <div class="font-mono font-bold text-xs text-gray-900">${p.correlation > 0 ? '+' : ''}${p.correlation}</div>
       </div>
     `).join('');
     relBody.innerHTML = `
       <div class="space-y-2">
-        <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">Top Correlated Pairs</div>
+        <div class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Top Correlated Pairs</div>
         <div class="space-y-2">${pairCardsHtml}</div>
       </div>
-      <div class="p-4 rounded-lg border border-slate-200 bg-slate-50/70 flex flex-col justify-between">
+      <div class="p-3.5 rounded border border-gray-200 bg-gray-50/50 flex flex-col justify-between">
         <div>
-          <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Multicollinearity Guidance</div>
-          <p class="text-xs text-slate-600 leading-relaxed mb-4">
-            Pairs exceeding <strong>|0.80|</strong> induce severe multicollinearity in linear models. Consider dropping redundant collinear features.
+          <div class="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Multicollinearity Guidance</div>
+          <p class="text-xs text-gray-600 leading-relaxed mb-4">
+            Features with correlation exceeding |0.80| induce multicollinearity in linear models. Consider dropping one of the collinear pairs.
           </p>
         </div>
-        <button onclick="switchMainTab('visualizations')" class="w-full py-2 rounded-lg bg-white hover:bg-slate-50 text-xs font-bold text-indigo-600 border border-slate-300 shadow-2xs transition">
-          View Interactive Correlation Heatmap →
+        <button onclick="switchMainTab('visualizations')" class="w-full py-2 rounded bg-white hover:bg-gray-100 text-xs font-medium text-gray-800 border border-gray-300 transition">
+          View Correlation Heatmap →
         </button>
       </div>
     `;
@@ -520,38 +494,28 @@ function renderPart1Investigations(data) {
   const issues = inv.data_quality_leakage.issues || [];
   if (issues.length === 0) {
     qList.innerHTML = `
-      <div class="p-3.5 rounded-lg border border-slate-200 bg-emerald-50/50 text-xs text-emerald-800 flex items-center space-x-2 font-medium">
-        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
-        <span>No critical quality issues or proxy leakage vectors found. Dataset is well-formed!</span>
+      <div class="p-3 rounded border border-gray-200 bg-gray-50 text-xs text-gray-700 flex items-center space-x-2">
+        <i data-lucide="check" class="w-4 h-4 text-gray-900"></i>
+        <span>No critical quality issues detected. Dataset is clean and ready.</span>
       </div>
     `;
   } else {
     qList.innerHTML = issues.map(iss => {
-      let color = "amber";
-      if (iss.severity === "Critical" || iss.severity === "High") color = "rose";
       return `
-        <div class="p-3 rounded-lg border border-${color}-200 bg-${color}-50/40 flex items-start justify-between">
+        <div class="p-3 rounded border border-gray-200 bg-gray-50 flex items-start justify-between">
           <div>
-            <div class="text-xs font-bold text-slate-900 font-mono">${iss.type} (${iss.column})</div>
-            <p class="text-xs text-slate-600 mt-0.5">${iss.description}</p>
+            <div class="text-xs font-semibold text-gray-900">${iss.type} (${iss.column})</div>
+            <p class="text-xs text-gray-600 mt-0.5">${iss.description}</p>
           </div>
-          <span class="text-[10px] font-bold font-mono uppercase px-2 py-0.5 rounded bg-${color}-100 text-${color}-800 ml-3 shrink-0">${iss.severity}</span>
+          <span class="text-[11px] font-medium text-gray-700 bg-white border border-gray-200 px-2 py-0.5 rounded ml-3 shrink-0">${iss.severity}</span>
         </div>
       `;
     }).join('');
   }
 }
 
-function getTypeBadgeClass(t) {
-  if (t.includes("Numerical")) return "badge-numeric";
-  if (t.includes("Categorical")) return "badge-categorical";
-  if (t === "Datetime") return "badge-datetime";
-  if (t === "Boolean") return "badge-boolean";
-  return "bg-slate-100 text-slate-700 border border-slate-200";
-}
-
 // =========================================================
-// PART 2: 10 VISUALIZATIONS RENDERERS (EXECUTIVE THEME)
+// PART 2: 10 VISUALIZATIONS RENDERERS (CLEAN PROFESSIONAL)
 // =========================================================
 function initVisualizationControls(data) {
   const viz = data.visualizations;
@@ -632,7 +596,7 @@ function getOrCreateChart(canvasId, config) {
   return chartInstances[canvasId];
 }
 
-// 1. Missing Values Heatmap (High Resolution Matrix)
+// 1. Missing Values Heatmap (Minimalist Canvas Grid)
 function renderMissingHeatmap() {
   const canvas = document.getElementById('canvasMissingHeatmap');
   const viz = globalData.visualizations.missing_heatmap;
@@ -655,14 +619,14 @@ function renderMissingHeatmap() {
   for (let r = 0; r < numRows; r++) {
     for (let c = 0; c < numCols; c++) {
       const isMissing = viz.matrix[r][c] === 1;
-      ctx.fillStyle = isMissing ? '#e11d48' : '#e2e8f0';
+      ctx.fillStyle = isMissing ? '#111827' : '#e5e7eb';
       ctx.fillRect(c * w, r * h, Math.max(1, w - 1), Math.max(1, h - 1));
     }
   }
 
-  // Column names
-  ctx.fillStyle = '#64748b';
-  ctx.font = '10px JetBrains Mono, monospace';
+  // Clean labels
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '10px Inter, sans-serif';
   for (let c = 0; c < numCols; c++) {
     const name = viz.columns[c].slice(0, 8);
     ctx.fillText(name, c * w + 2, rect.height - 8);
@@ -672,7 +636,7 @@ function renderMissingHeatmap() {
   document.getElementById('missingHeatmapSummary').textContent = `${missingSum} missing cells in matrix`;
 }
 
-// 2. Histograms (Deep Indigo / Sky Bars)
+// 2. Histograms (Crisp Professional Bar)
 function renderHistogramChart() {
   const select = document.getElementById('histFeatureSelect');
   if (!select || !select.value) return;
@@ -687,10 +651,8 @@ function renderHistogramChart() {
       datasets: [{
         label: `${feat}`,
         data: hist.counts,
-        backgroundColor: '#4f46e5',
-        borderColor: '#4338ca',
-        borderWidth: 1,
-        borderRadius: 4
+        backgroundColor: '#374151',
+        borderRadius: 2
       }]
     },
     options: {
@@ -698,19 +660,19 @@ function renderHistogramChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: PALETTE.axis, font: { size: 9, family: 'JetBrains Mono' } }, grid: { display: false } },
-        y: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { color: PALETTE.grid } }
+        x: { ticks: { color: SAAS_COLORS.text, font: { size: 9 } }, grid: { display: false } },
+        y: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { color: SAAS_COLORS.grid } }
       }
     }
   });
 
   document.getElementById('histStatsFooter').innerHTML = `
-    <span>Mean: <strong class="text-slate-900">${hist.mean}</strong></span>
-    <span>Median: <strong class="text-slate-900">${hist.median}</strong></span>
+    <span>Mean: <strong class="text-gray-900">${hist.mean}</strong></span>
+    <span>Median: <strong class="text-gray-900">${hist.median}</strong></span>
   `;
 }
 
-// 3. Box Plots (Quartiles & Bounds in Teal / Sky)
+// 3. Box Plots (Quartiles & Bounds)
 function renderBoxplotChart() {
   const select = document.getElementById('boxFeatureSelect');
   if (!select || !select.value) return;
@@ -721,12 +683,12 @@ function renderBoxplotChart() {
   getOrCreateChart('canvasBoxplot', {
     type: 'bar',
     data: {
-      labels: ['Min / Lower Fence', 'Q1 (25%)', 'Median', 'Q3 (75%)', 'Max / Upper Fence'],
+      labels: ['Lower Bound', 'Q1 (25%)', 'Median', 'Q3 (75%)', 'Upper Bound'],
       datasets: [{
         label: `${feat}`,
         data: [b.lower_whisker, b.q1, b.median, b.q3, b.upper_whisker],
-        backgroundColor: ['#38bdf8', '#0284c7', '#0d9488', '#0284c7', '#38bdf8'],
-        borderRadius: 4
+        backgroundColor: '#4b5563',
+        borderRadius: 2
       }]
     },
     options: {
@@ -734,27 +696,25 @@ function renderBoxplotChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { display: false } },
-        y: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { color: PALETTE.grid } }
+        x: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { color: SAAS_COLORS.grid } }
       }
     }
   });
 
   document.getElementById('boxStatsFooter').innerHTML = `
-    <span>IQR: <strong class="text-slate-900">${(b.q3 - b.q1).toFixed(2)}</strong></span>
-    <span>Outliers: <strong class="text-rose-600 font-bold">${b.outliers.length}</strong></span>
+    <span>IQR: <strong class="text-gray-900">${(b.q3 - b.q1).toFixed(2)}</strong></span>
+    <span>Outliers: <strong class="text-gray-900">${b.outliers.length}</strong></span>
   `;
 }
 
-// 4. Count Plots (Categorical Multi-Color Bars)
+// 4. Count Plots (Discrete Categories)
 function renderCountPlotChart() {
   const select = document.getElementById('countFeatureSelect');
   if (!select || !select.value) return;
   const feat = select.value;
   const c = globalData.visualizations.countplots[feat];
   if (!c) return;
-
-  const barColors = c.categories.map((_, i) => PALETTE.categorical[i % PALETTE.categorical.length]);
 
   getOrCreateChart('canvasCountplot', {
     type: 'bar',
@@ -763,8 +723,8 @@ function renderCountPlotChart() {
       datasets: [{
         label: feat,
         data: c.counts,
-        backgroundColor: barColors,
-        borderRadius: 4
+        backgroundColor: '#1f2937',
+        borderRadius: 2
       }]
     },
     options: {
@@ -772,26 +732,26 @@ function renderCountPlotChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { display: false } },
-        y: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { color: PALETTE.grid } }
+        x: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { color: SAAS_COLORS.grid } }
       }
     }
   });
 
   const total = c.counts.reduce((a, b) => a + b, 0);
   document.getElementById('countPlotFooter').innerHTML = `
-    <span>Categories: <strong class="text-slate-900">${c.categories.length}</strong></span>
-    <span>Total Observations: <strong class="text-slate-900">${total}</strong></span>
+    <span>Categories: <strong class="text-gray-900">${c.categories.length}</strong></span>
+    <span>Total: <strong class="text-gray-900">${total}</strong></span>
   `;
 }
 
-// 5. Correlation Heatmap (Teal / Indigo / Rose Grid)
+// 5. Correlation Heatmap (Monochrome / Slate Shades)
 function renderCorrelationHeatmap() {
   const container = document.getElementById('corrHeatmapContainer');
   const h = globalData.visualizations.correlation_heatmap;
   if (!container) return;
   if (!h || !h.columns || h.columns.length === 0) {
-    container.innerHTML = `<div class="text-xs text-slate-500 py-8">No numerical features for correlation matrix.</div>`;
+    container.innerHTML = `<div class="text-xs text-gray-500 py-8">No numerical features for correlation matrix.</div>`;
     return;
   }
 
@@ -802,17 +762,17 @@ function renderCorrelationHeatmap() {
   
   tableHtml += `<tr><th></th>`;
   cols.forEach(c => {
-    tableHtml += `<th class="px-2.5 py-1.5 text-slate-600 font-bold text-center truncate max-w-[85px]">${c.slice(0, 8)}</th>`;
+    tableHtml += `<th class="px-2.5 py-1.5 text-gray-600 font-medium text-center truncate max-w-[85px]">${c.slice(0, 8)}</th>`;
   });
   tableHtml += `</tr>`;
 
   for (let r = 0; r < n; r++) {
-    tableHtml += `<tr><th class="px-2.5 py-1.5 text-slate-600 font-bold text-right truncate max-w-[90px]">${cols[r].slice(0, 8)}</th>`;
+    tableHtml += `<tr><th class="px-2.5 py-1.5 text-gray-600 font-medium text-right truncate max-w-[90px]">${cols[r].slice(0, 8)}</th>`;
     for (let c = 0; c < n; c++) {
       const val = h.matrix[r][c];
-      const bg = getExecutiveCorrColor(val);
-      const txtColor = Math.abs(val) > 0.4 ? '#ffffff' : '#0f172a';
-      tableHtml += `<td class="p-2.5 text-center font-bold corr-cell rounded-xs cursor-pointer" style="background-color: ${bg}; color: ${txtColor};" title="${cols[r]} vs ${cols[c]}: ${val}">${val.toFixed(2)}</td>`;
+      const bg = getSaaSCorrColor(val);
+      const txtColor = Math.abs(val) > 0.45 ? '#ffffff' : '#111827';
+      tableHtml += `<td class="p-2 text-center font-medium rounded-xs" style="background-color: ${bg}; color: ${txtColor};" title="${cols[r]} vs ${cols[c]}: ${val}">${val.toFixed(2)}</td>`;
     }
     tableHtml += `</tr>`;
   }
@@ -820,16 +780,16 @@ function renderCorrelationHeatmap() {
   container.innerHTML = tableHtml;
 }
 
-function getExecutiveCorrColor(val) {
-  if (val === 1.0) return '#059669';
+function getSaaSCorrColor(val) {
+  if (val === 1.0) return '#111827';
   if (val > 0) {
-    return `rgba(13, 148, 136, ${Math.max(0.12, val * 0.9)})`;
+    return `rgba(31, 41, 55, ${Math.max(0.06, val * 0.9)})`;
   } else {
-    return `rgba(225, 29, 72, ${Math.max(0.12, Math.abs(val) * 0.9)})`;
+    return `rgba(185, 28, 28, ${Math.max(0.06, Math.abs(val) * 0.85)})`;
   }
 }
 
-// 6. Scatter Plots (Sky / Indigo Accent Points)
+// 6. Scatter Plots
 function renderScatterChart() {
   const select = document.getElementById('scatterPairSelect');
   if (!select || !select.value) return;
@@ -843,10 +803,9 @@ function renderScatterChart() {
       datasets: [{
         label: pairKey,
         data: p.points,
-        backgroundColor: 'rgba(2, 132, 199, 0.75)',
-        borderColor: '#0284c7',
-        pointRadius: 3.5,
-        pointHoverRadius: 6
+        backgroundColor: '#1f2937',
+        pointRadius: 3,
+        pointHoverRadius: 5
       }]
     },
     options: {
@@ -854,19 +813,19 @@ function renderScatterChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { title: { display: true, text: p.x_col, color: PALETTE.axis, font: { size: 10 } }, ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } },
-        y: { title: { display: true, text: p.y_col, color: PALETTE.axis, font: { size: 10 } }, ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } }
+        x: { title: { display: true, text: p.x_col, color: SAAS_COLORS.text, font: { size: 10 } }, ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } },
+        y: { title: { display: true, text: p.y_col, color: SAAS_COLORS.text, font: { size: 10 } }, ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } }
       }
     }
   });
 
   document.getElementById('scatterFooter').innerHTML = `
-    <span>Pearson (r): <strong class="text-sky-600">${p.correlation}</strong></span>
-    <span>Observations: <strong class="text-slate-900">${p.points.length}</strong></span>
+    <span>Pearson (r): <strong class="text-gray-900">${p.correlation}</strong></span>
+    <span>Observations: <strong class="text-gray-900">${p.points.length}</strong></span>
   `;
 }
 
-// 7. Target Distribution Plot (Multi-Class Donut or Density)
+// 7. Target Distribution Plot
 function renderTargetDistChart() {
   const tInfo = globalData.visualizations.target_distribution;
   const badge = document.getElementById('targetPlotTypeBadge');
@@ -882,8 +841,8 @@ function renderTargetDistChart() {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: PALETTE.categorical.slice(0, labels.length),
-          borderWidth: 2,
+          backgroundColor: ['#111827', '#4b5563', '#9ca3af', '#d1d5db'],
+          borderWidth: 1,
           borderColor: '#ffffff'
         }]
       },
@@ -891,14 +850,14 @@ function renderTargetDistChart() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'right', labels: { color: '#334155', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } } }
+          legend: { position: 'right', labels: { color: '#374151', font: { size: 11 } } }
         }
       }
     });
 
     document.getElementById('targetPlotFooter').innerHTML = `
-      <span>Class Balance: <strong class="${tInfo.is_imbalanced ? 'text-amber-600' : 'text-emerald-600'}">${tInfo.is_imbalanced ? 'Imbalanced' : 'Balanced'}</strong></span>
-      <span>Classes: <strong class="text-slate-900">${tInfo.unique_classes}</strong></span>
+      <span>Balance: <strong class="text-gray-900">${tInfo.is_imbalanced ? 'Imbalanced' : 'Balanced'}</strong></span>
+      <span>Classes: <strong class="text-gray-900">${tInfo.unique_classes}</strong></span>
     `;
   } else {
     const dist = tInfo.distribution;
@@ -909,8 +868,8 @@ function renderTargetDistChart() {
         datasets: [{
           label: tInfo.column,
           data: dist.hist_values,
-          backgroundColor: '#4f46e5',
-          borderRadius: 4
+          backgroundColor: '#374151',
+          borderRadius: 2
         }]
       },
       options: {
@@ -918,40 +877,40 @@ function renderTargetDistChart() {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: PALETTE.axis, font: { size: 9, family: 'JetBrains Mono' } }, grid: { display: false } },
-          y: { ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } }
+          x: { ticks: { color: SAAS_COLORS.text, font: { size: 9 } }, grid: { display: false } },
+          y: { ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } }
         }
       }
     });
 
     document.getElementById('targetPlotFooter').innerHTML = `
-      <span>Mean: <strong class="text-slate-900">${tInfo.mean}</strong></span>
-      <span>Skew: <strong class="text-slate-900">${tInfo.skew}</strong></span>
+      <span>Mean: <strong class="text-gray-900">${tInfo.mean}</strong></span>
+      <span>Skew: <strong class="text-gray-900">${tInfo.skew}</strong></span>
     `;
   }
 }
 
-// 8. Pair Plot Matrix (Multi-Feature Micro Charts)
+// 8. Pair Plot Matrix
 function renderPairplotGrid() {
   const container = document.getElementById('pairplotGridContainer');
   const pp = globalData.visualizations.pairplot;
   if (!container) return;
   if (!pp || !pp.columns || pp.columns.length < 2) {
-    container.innerHTML = `<div class="text-xs text-slate-500 py-6 text-center">Pair plot requires at least two numerical features.</div>`;
+    container.innerHTML = `<div class="text-xs text-gray-500 py-6 text-center">Pair plot requires at least two numerical features.</div>`;
     return;
   }
 
   const cols = pp.columns;
   const n = cols.length;
   
-  let gridHtml = `<div class="grid" style="grid-template-columns: repeat(${n}, minmax(130px, 1fr)); gap: 8px;">`;
+  let gridHtml = `<div class="grid" style="grid-template-columns: repeat(${n}, minmax(130px, 1fr)); gap: 6px;">`;
   
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const cid = `pair_c_${r}_${c}`;
       gridHtml += `
-        <div class="h-28 rounded-lg bg-white border border-slate-200 p-1.5 flex flex-col justify-between shadow-2xs">
-          <div class="text-[9px] font-mono text-slate-500 font-bold truncate">${cols[r].slice(0,6)} / ${cols[c].slice(0,6)}</div>
+        <div class="h-28 rounded bg-white border border-gray-200 p-1 flex flex-col justify-between">
+          <div class="text-[9px] font-mono text-gray-500 truncate">${cols[r].slice(0,6)} / ${cols[c].slice(0,6)}</div>
           <div class="relative h-20 w-full">
             <canvas id="${cid}"></canvas>
           </div>
@@ -977,7 +936,7 @@ function renderPairplotGrid() {
               labels: vals.slice(0, 10).map((_, i) => i),
               datasets: [{
                 data: vals.slice(0, 10),
-                backgroundColor: '#0d9488',
+                backgroundColor: '#6b7280',
                 borderWidth: 0
               }]
             },
@@ -995,8 +954,8 @@ function renderPairplotGrid() {
             data: {
               datasets: [{
                 data: pts,
-                backgroundColor: 'rgba(79, 70, 229, 0.75)',
-                pointRadius: 2.5
+                backgroundColor: '#1f2937',
+                pointRadius: 2
               }]
             },
             options: {
@@ -1012,7 +971,7 @@ function renderPairplotGrid() {
   }, 50);
 }
 
-// 9. Feature vs Target Plots (Violet / Indigo Medians)
+// 9. Feature vs Target Plots
 function renderFeatVsTargetChart() {
   const select = document.getElementById('featVsTargetSelect');
   if (!select || !select.value) return;
@@ -1023,7 +982,6 @@ function renderFeatVsTargetChart() {
   if (fvt.type === "grouped_box") {
     const labels = fvt.data.map(d => `Class ${d.class}`);
     const medians = fvt.data.map(d => d.median);
-    const colors = labels.map((_, i) => PALETTE.categorical[i % PALETTE.categorical.length]);
 
     getOrCreateChart('canvasFeatVsTarget', {
       type: 'bar',
@@ -1032,8 +990,8 @@ function renderFeatVsTargetChart() {
         datasets: [{
           label: `${feat} Median`,
           data: medians,
-          backgroundColor: colors,
-          borderRadius: 4
+          backgroundColor: '#374151',
+          borderRadius: 2
         }]
       },
       options: {
@@ -1041,14 +999,14 @@ function renderFeatVsTargetChart() {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { display: false } },
-          y: { ticks: { color: PALETTE.axis, font: { size: 10 } }, grid: { color: PALETTE.grid } }
+          x: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: SAAS_COLORS.text, font: { size: 10 } }, grid: { color: SAAS_COLORS.grid } }
         }
       }
     });
 
     document.getElementById('featVsTargetFooter').innerHTML = `
-      <span>Feature: <strong class="text-slate-900">${feat}</strong></span>
+      <span>Feature: <strong class="text-gray-900">${feat}</strong></span>
       <span>Distribution grouped across target classes</span>
     `;
   } else {
@@ -1058,9 +1016,8 @@ function renderFeatVsTargetChart() {
         datasets: [{
           label: `${feat} vs ${fvt.target}`,
           data: fvt.points,
-          backgroundColor: 'rgba(124, 58, 237, 0.75)',
-          borderColor: '#7c3aed',
-          pointRadius: 3.5
+          backgroundColor: '#1f2937',
+          pointRadius: 3
         }]
       },
       options: {
@@ -1068,20 +1025,20 @@ function renderFeatVsTargetChart() {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { title: { display: true, text: feat, color: PALETTE.axis }, ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } },
-          y: { title: { display: true, text: fvt.target, color: PALETTE.axis }, ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } }
+          x: { title: { display: true, text: feat, color: SAAS_COLORS.text }, ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } },
+          y: { title: { display: true, text: fvt.target, color: SAAS_COLORS.text }, ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } }
         }
       }
     });
 
     document.getElementById('featVsTargetFooter').innerHTML = `
-      <span>Relationship: <strong class="text-slate-900">${feat} vs ${fvt.target}</strong></span>
-      <span>Continuous bivariate relationship</span>
+      <span>Relationship: <strong class="text-gray-900">${feat} vs ${fvt.target}</strong></span>
+      <span>Continuous bivariate distribution</span>
     `;
   }
 }
 
-// 10. Time-Series Plot (Indigo Area Fill)
+// 10. Time-Series Plot
 function renderTimeSeriesChart() {
   const ts = globalData.visualizations.timeseries;
   const statusTag = document.getElementById('tsStatusTag');
@@ -1104,12 +1061,12 @@ function renderTimeSeriesChart() {
       datasets: [{
         label: `${ts.value_column}`,
         data: data,
-        borderColor: '#4f46e5',
-        backgroundColor: 'rgba(79, 70, 229, 0.08)',
-        borderWidth: 2,
+        borderColor: '#111827',
+        backgroundColor: 'rgba(17, 24, 39, 0.04)',
+        borderWidth: 1.5,
         fill: true,
-        tension: 0.15,
-        pointRadius: 1.5,
+        tension: 0.1,
+        pointRadius: 1,
         pointHoverRadius: 4
       }]
     },
@@ -1118,15 +1075,15 @@ function renderTimeSeriesChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: PALETTE.axis, maxTicksLimit: 7 }, grid: { display: false } },
-        y: { ticks: { color: PALETTE.axis }, grid: { color: PALETTE.grid } }
+        x: { ticks: { color: SAAS_COLORS.text, maxTicksLimit: 7 }, grid: { display: false } },
+        y: { ticks: { color: SAAS_COLORS.text }, grid: { color: SAAS_COLORS.grid } }
       }
     }
   });
 
   document.getElementById('tsFooter').innerHTML = `
-    <span>Observations: <strong class="text-slate-900">${ts.series.length}</strong></span>
-    <span>Feature: <strong class="text-indigo-600">${ts.value_column}</strong></span>
+    <span>Observations: <strong class="text-gray-900">${ts.series.length}</strong></span>
+    <span>Feature: <strong class="text-gray-900">${ts.value_column}</strong></span>
   `;
 }
 
@@ -1143,7 +1100,7 @@ function renderRawTable(data) {
     return '<tr>' + data.all_columns.map(c => {
       const val = row[c];
       const isNull = val === null || val === undefined;
-      return `<td class="font-mono text-xs whitespace-nowrap ${isNull ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-slate-800'}">${isNull ? 'null' : val}</td>`;
+      return `<td class="font-mono text-xs whitespace-nowrap ${isNull ? 'text-red-700 italic font-semibold' : 'text-gray-800'}">${isNull ? 'null' : val}</td>`;
     }).join('') + '</tr>';
   }).join('');
 }
@@ -1153,6 +1110,6 @@ function downloadCleanReport() {
   const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalData, null, 2));
   const dlAnchorElem = document.createElement('a');
   dlAnchorElem.setAttribute("href", jsonStr);
-  dlAnchorElem.setAttribute("download", `dataprofiler_audit_${Date.now()}.json`);
+  dlAnchorElem.setAttribute("download", `data_profiler_report_${Date.now()}.json`);
   dlAnchorElem.click();
 }
