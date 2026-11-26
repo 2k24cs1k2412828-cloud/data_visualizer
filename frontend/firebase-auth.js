@@ -120,10 +120,10 @@ function updateAuthUI(profile) {
   } else {
     // Guest state
     authNav.innerHTML = `
-      <button onclick="openAuthModal('signin')" class="px-3 py-1.5 rounded text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition">
+      <button onclick="openAuthModal('signin')" class="px-2 sm:px-3 py-1.5 rounded text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition whitespace-nowrap">
         Sign In
       </button>
-      <button onclick="openAuthModal('signup')" class="px-3 py-1.5 rounded text-xs font-medium bg-gray-900 text-white hover:bg-black transition shadow-2xs">
+      <button onclick="openAuthModal('signup')" class="hidden sm:inline-block px-3 py-1.5 rounded text-xs font-medium bg-gray-900 text-white hover:bg-black transition shadow-2xs whitespace-nowrap">
         Get Started
       </button>
     `;
@@ -591,29 +591,29 @@ async function loadUserAnalysisHistory() {
     let html = '';
     docs.slice(0, 20).forEach(d => {
       html += `
-        <div class="border border-gray-200 rounded-lg p-3.5 bg-white hover:border-gray-300 transition flex items-center justify-between">
-          <div class="flex items-center space-x-3">
+        <div class="border border-gray-200 rounded-lg p-3 sm:p-3.5 bg-white hover:border-gray-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="flex items-center space-x-2.5 min-w-0">
             <div class="w-8 h-8 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-600 flex-shrink-0">
               <i data-lucide="file-text" class="w-4 h-4"></i>
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
               <div class="flex items-center space-x-2">
-                <span class="text-xs font-semibold text-gray-900">${d.filename}</span>
-                <span class="text-[11px] font-mono text-gray-500">
+                <span class="text-xs font-semibold text-gray-900 truncate max-w-[150px] sm:max-w-xs">${d.filename}</span>
+                <span class="text-[11px] font-mono text-gray-500 whitespace-nowrap">
                   ${(d.rows || 0).toLocaleString()} × ${d.columns || 0}
                 </span>
               </div>
-              <div class="flex items-center space-x-2 mt-0.5 text-xs text-gray-500">
+              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-xs text-gray-500">
                 <span>${d.analyzedDateStr || 'Recently'}</span>
                 <span>•</span>
-                <span>Target: <span class="text-gray-700 font-medium">${d.targetCol}</span></span>
+                <span class="truncate max-w-[120px]">Target: <span class="text-gray-700 font-medium">${d.targetCol}</span></span>
                 <span>•</span>
                 <span>Nulls: ${d.missingPct}%</span>
               </div>
             </div>
           </div>
 
-          <div class="text-right">
+          <div class="flex items-center justify-between sm:flex-col sm:items-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-100 flex-shrink-0">
             <div class="text-xs font-semibold text-gray-900">${d.qualityScore}/100</div>
             <div class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Quality Score</div>
           </div>

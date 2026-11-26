@@ -94,3 +94,28 @@ body {
 .modal-overlay.hidden {
   display: none !important;
 }
+
+/* Touch-friendly horizontal scroll on mobile */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Canvas responsiveness within flexible containers */
+canvas {
+  max-width: 100%;
+}
+
+/* Mobile Responsive Adaptations (< 640px) */
+@media (max-width: 640px) {
+  .saas-table {
+    min-width: 500px;
+    font-size: 11px;
+  }
+  .saas-table th,
+  .saas-table td {
+    padding: 8px 10px;
+  }
+  .modal-overlay {
+    padding: 0.75rem;
+  }
+}
