@@ -13,15 +13,40 @@ from analytics import analyze_dataset
 
 warnings.filterwarnings("ignore")
 
-app = FastAPI(title="NexusEDA - Professional Data Intelligence Engine")
+# Security hardening: disable interactive documentation (/docs, /redoc, /openapi.json) in production
+is_prod = os.getenv("VERCEL_ENV") == "production" or os.getenv("ENVIRONMENT") == "production"
 
+app = FastAPI(
+    title="QUBRIX Engine",
+    docs_url=None if is_prod else "/docs",
+    redoc_url=None if is_prod else "/redoc",
+    openapi_url=None if is_prod else "/openapi.json"
+)
+
+# CORS Security: restrict methods and headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://datavisualizer-seven.vercel.app",
+        "http://localhost:8501",
+        "http://127.0.0.1:8501",
+        "http://localhost:8000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# Global Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
 
 # Store dataset in memory for the active session
 current_session = {
