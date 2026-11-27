@@ -105,9 +105,9 @@ function updateAuthUI(profile) {
             </div>
           </div>
           <!-- View Profile & History -->
-          <button onclick="openProfileHistoryModal()" class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center space-x-2 transition border-b border-gray-100">
-            <i data-lucide="history" class="w-3.5 h-3.5 text-gray-500"></i>
-            <span>Profile & Analysis History</span>
+          <button onclick="openProfilePage()" class="w-full text-left px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center space-x-2 transition border-b border-gray-100">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-gray-500"></i>
+            <span>User Profile & Analysis History</span>
           </button>
           <button onclick="handleSignOut()" class="w-full text-left px-3.5 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center space-x-2 transition">
             <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-500"></i>
@@ -406,30 +406,71 @@ function showAuthError(msg) {
 }
 
 // =========================================================
-// PROFILE & ANALYSIS HISTORY MANAGEMENT
+// DEDICATED FULL-SCREEN PROFILE & ANALYSIS HISTORY WORKSPACE
 // =========================================================
 
-function openProfileHistoryModal() {
-  const modal = document.getElementById('profileHistoryModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
+function openProfilePage() {
+  const user = auth.currentUser;
+  if (!user) {
+    openAuthModal('signin');
+    return;
+  }
 
-  const p = currentUserProfile || {};
-  const fullName = p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : (p.username || 'User');
+  // Navigate to dedicated full screen profile section
+  if (typeof navigateToFeaturePage === 'function') {
+    navigateToFeaturePage('profile');
+  }
+
+  populateFullProfileDetails();
+  loadUserAnalysisHistory();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (window.lucide) lucide.createIcons();
+}
+
+function openProfileHistoryModal() {
+  openProfilePage();
+}
+
+function closeProfileHistoryModal() {
+  if (typeof returnToHome === 'function') {
+    returnToHome();
+  }
+}
+
+// Populate details on the Full Profile Page
+function populateFullProfileDetails() {
+  const user = auth.currentUser;
+  const p = currentUserProfile || (user ? {
+    uid: user.uid,
+    email: user.email,
+    firstName: user.displayName ? user.displayName.split(' ')[0] : 'User',
+    lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
+    occupation: 'Working Professional',
+    photoURL: user.photoURL || null
+  } : {});
+
+  const fullName = p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : (p.username || user?.displayName || 'User');
   const initials = (p.firstName ? p.firstName[0] : (p.email ? p.email[0] : 'U')).toUpperCase();
 
-  const nameEl = document.getElementById('profileModalFullName');
-  const userEl = document.getElementById('profileModalUsername');
-  const emailEl = document.getElementById('profileModalEmail');
-  const roleEl = document.getElementById('profileRoleBadge');
-  const avatarImg = document.getElementById('profileModalAvatarImg');
-  const avatarInitials = document.getElementById('profileModalAvatarInitials');
-  const occSelect = document.getElementById('editOccupationSelect');
+  // Full Screen Elements
+  const fullNameEl = document.getElementById('fullProfileFullName');
+  const usernameEl = document.getElementById('fullProfileUsername');
+  const emailEl = document.getElementById('fullProfileEmail');
+  const roleBadgeEl = document.getElementById('fullProfileRoleBadge');
+  const uidEl = document.getElementById('fullProfileUid');
+  const fnInput = document.getElementById('fullEditFirstNameInput');
+  const lnInput = document.getElementById('fullEditLastNameInput');
+  const occSelect = document.getElementById('fullEditOccupationSelect');
+  const avatarImg = document.getElementById('fullProfileAvatarImg');
+  const avatarInitials = document.getElementById('fullProfileAvatarInitials');
 
-  if (nameEl) nameEl.textContent = fullName;
-  if (userEl) userEl.textContent = p.username ? `@${p.username}` : '';
-  if (emailEl) emailEl.textContent = p.email || '';
-  if (roleEl) roleEl.textContent = p.occupation || 'Professional';
+  if (fullNameEl) fullNameEl.textContent = fullName;
+  if (usernameEl) usernameEl.textContent = p.username ? `@${p.username}` : (user?.email ? `@${user.email.split('@')[0]}` : '@user');
+  if (emailEl) emailEl.textContent = p.email || user?.email || '';
+  if (roleBadgeEl) roleBadgeEl.textContent = p.occupation || 'Working Professional';
+  if (uidEl) uidEl.value = p.uid || user?.uid || '';
+  if (fnInput) fnInput.value = p.firstName || '';
+  if (lnInput) lnInput.value = p.lastName || '';
   if (occSelect && p.occupation) occSelect.value = p.occupation;
 
   if (p.photoURL && avatarImg && avatarInitials) {
@@ -442,18 +483,90 @@ function openProfileHistoryModal() {
     avatarInitials.classList.remove('hidden');
   }
 
-  loadUserAnalysisHistory();
-  lucide.createIcons();
+  // Also sync modal elements if any exist
+  const modalNameEl = document.getElementById('profileModalFullName');
+  const modalUserEl = document.getElementById('profileModalUsername');
+  const modalEmailEl = document.getElementById('profileModalEmail');
+  const modalRoleEl = document.getElementById('profileRoleBadge');
+  const modalAvatarImg = document.getElementById('profileModalAvatarImg');
+  const modalAvatarInitials = document.getElementById('profileModalAvatarInitials');
+  const modalOccSelect = document.getElementById('editOccupationSelect');
+
+  if (modalNameEl) modalNameEl.textContent = fullName;
+  if (modalUserEl) modalUserEl.textContent = p.username ? `@${p.username}` : '';
+  if (modalEmailEl) modalEmailEl.textContent = p.email || '';
+  if (modalRoleEl) modalRoleEl.textContent = p.occupation || 'Professional';
+  if (modalOccSelect && p.occupation) modalOccSelect.value = p.occupation;
+
+  if (p.photoURL && modalAvatarImg && modalAvatarInitials) {
+    modalAvatarImg.src = p.photoURL;
+    modalAvatarImg.classList.remove('hidden');
+    modalAvatarInitials.classList.add('hidden');
+  } else if (modalAvatarImg && modalAvatarInitials) {
+    modalAvatarImg.classList.add('hidden');
+    modalAvatarInitials.textContent = initials;
+    modalAvatarInitials.classList.remove('hidden');
+  }
 }
 
-function closeProfileHistoryModal() {
-  const modal = document.getElementById('profileHistoryModal');
-  if (!modal) return;
-  modal.classList.add('hidden');
+// Save Full Profile Changes
+async function handleSaveFullProfileChanges() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const fnInput = document.getElementById('fullEditFirstNameInput');
+  const lnInput = document.getElementById('fullEditLastNameInput');
+  const occSelect = document.getElementById('fullEditOccupationSelect');
+  const statusEl = document.getElementById('fullProfileUpdateStatus');
+  const saveBtn = document.getElementById('saveProfileBtn');
+
+  const newFn = fnInput ? fnInput.value.trim() : '';
+  const newLn = lnInput ? lnInput.value.trim() : '';
+  const newOcc = occSelect ? occSelect.value : 'Working Professional';
+
+  if (saveBtn) saveBtn.disabled = true;
+
+  try {
+    await db.collection('users').doc(user.uid).update({
+      firstName: newFn,
+      lastName: newLn,
+      occupation: newOcc,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    if (currentUserProfile) {
+      currentUserProfile.firstName = newFn;
+      currentUserProfile.lastName = newLn;
+      currentUserProfile.occupation = newOcc;
+    } else {
+      currentUserProfile = {
+        uid: user.uid,
+        email: user.email,
+        firstName: newFn,
+        lastName: newLn,
+        occupation: newOcc
+      };
+    }
+
+    updateAuthUI(currentUserProfile);
+    populateFullProfileDetails();
+
+    if (statusEl) {
+      statusEl.classList.remove('hidden');
+      setTimeout(() => {
+        statusEl.classList.add('hidden');
+      }, 3500);
+    }
+  } catch (err) {
+    console.error("Failed to update profile:", err);
+    alert("Error updating profile: " + err.message);
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }
 
-// Edit Profile Avatar
-async function handleEditAvatarSelected(e) {
+// Edit Full Profile Avatar
+async function handleFullProfileAvatarSelected(e) {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -478,13 +591,18 @@ async function handleEditAvatarSelected(e) {
         currentUserProfile.photoURL = base64Data;
       }
       updateAuthUI(currentUserProfile);
-      openProfileHistoryModal(); // Refresh modal view
+      populateFullProfileDetails();
     } catch (err) {
       console.error("Failed to update avatar:", err);
       alert("Error saving profile photo: " + err.message);
     }
   };
   reader.readAsDataURL(file);
+}
+
+// Edit Profile Avatar (Modal compatible)
+async function handleEditAvatarSelected(e) {
+  await handleFullProfileAvatarSelected(e);
 }
 
 // Update Occupation
@@ -502,8 +620,7 @@ async function handleUpdateOccupation(e) {
       currentUserProfile.occupation = newOcc;
     }
     updateAuthUI(currentUserProfile);
-    const roleEl = document.getElementById('profileRoleBadge');
-    if (roleEl) roleEl.textContent = newOcc;
+    populateFullProfileDetails();
   } catch (err) {
     console.error("Failed to update occupation:", err);
   }
@@ -552,79 +669,122 @@ async function recordAnalysisInHistory(filename, datasetData) {
   }
 }
 
-// Load and Render History in Profile Modal
+// Load and Render History in Full Profile Page & Modal
 async function loadUserAnalysisHistory() {
-  const container = document.getElementById('historyListContainer');
-  if (!container) return;
+  const fullContainer = document.getElementById('fullProfileHistoryListContainer');
+  const modalContainer = document.getElementById('historyListContainer');
+  if (!fullContainer && !modalContainer) return;
 
   const user = auth.currentUser;
   if (!user) {
-    container.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">Sign in to view your analysis history.</div>`;
+    const guestMsg = `<div class="text-xs text-gray-500 text-center py-6">Sign in to view your analysis history.</div>`;
+    if (fullContainer) fullContainer.innerHTML = guestMsg;
+    if (modalContainer) modalContainer.innerHTML = guestMsg;
     return;
   }
 
-  container.innerHTML = `<div class="text-xs text-gray-400 text-center py-4">Loading your dataset history...</div>`;
+  const loadingMsg = `<div class="text-xs text-gray-400 text-center py-8">Loading your dataset history...</div>`;
+  if (fullContainer) fullContainer.innerHTML = loadingMsg;
+  if (modalContainer) modalContainer.innerHTML = loadingMsg;
 
   try {
     // Query history without requiring a composite index
     const snap = await db.collection('users').doc(user.uid).collection('history').get();
 
     if (snap.empty) {
-      container.innerHTML = `
-        <div class="text-center py-8 border border-dashed border-gray-200 rounded-lg p-6 bg-white">
-          <i data-lucide="file-question" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
-          <p class="text-xs font-semibold text-gray-700">No datasets analyzed yet</p>
-          <p class="text-[11px] text-gray-400 mt-1">Upload any CSV to automatically keep track of your exploratory audits.</p>
+      const emptyHtml = `
+        <div class="text-center py-12 border border-dashed border-gray-200 rounded-xl p-8 bg-gray-50/50">
+          <i data-lucide="file-question" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
+          <p class="text-sm font-semibold text-gray-800">No datasets analyzed yet</p>
+          <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">Upload any CSV in our workspaces to automatically keep track of exploratory audits and model-readiness metrics.</p>
+          <button type="button" onclick="returnToHome()" class="mt-4 px-4 py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold shadow-xs">
+            Start Your First Analysis
+          </button>
         </div>
       `;
-      lucide.createIcons();
+      if (fullContainer) fullContainer.innerHTML = emptyHtml;
+      if (modalContainer) modalContainer.innerHTML = emptyHtml;
+
+      const statCount = document.getElementById('statDatasetsCount');
+      const statAvg = document.getElementById('statAvgCleanliness');
+      const statRows = document.getElementById('statTotalRecords');
+      if (statCount) statCount.textContent = "0";
+      if (statAvg) statAvg.textContent = "100/100";
+      if (statRows) statRows.textContent = "0";
+
+      if (window.lucide) lucide.createIcons();
       return;
     }
 
     // Sort client-side by timestampMs descending
     const docs = [];
+    let totalRows = 0;
+    let totalQuality = 0;
+
     snap.forEach(doc => {
-      docs.push({ id: doc.id, ...doc.data() });
+      const item = { id: doc.id, ...doc.data() };
+      docs.push(item);
+      totalRows += (item.rows || 0);
+      totalQuality += (item.qualityScore || 100);
     });
     docs.sort((a, b) => (b.timestampMs || 0) - (a.timestampMs || 0));
 
+    // Update Stats Summary Cards
+    const avgScore = docs.length > 0 ? Math.round(totalQuality / docs.length) : 100;
+    const statCount = document.getElementById('statDatasetsCount');
+    const statAvg = document.getElementById('statAvgCleanliness');
+    const statRows = document.getElementById('statTotalRecords');
+    if (statCount) statCount.textContent = docs.length.toString();
+    if (statAvg) statAvg.textContent = `${avgScore}/100`;
+    if (statRows) statRows.textContent = totalRows.toLocaleString();
+
     let html = '';
-    docs.slice(0, 20).forEach(d => {
+    docs.slice(0, 50).forEach(d => {
+      const scoreBadge = `
+        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200 font-mono">
+          ${d.qualityScore}/100 Score
+        </span>
+      `;
       html += `
-        <div class="border border-gray-200 rounded-lg p-3 sm:p-3.5 bg-white hover:border-gray-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div class="flex items-center space-x-2.5 min-w-0">
-            <div class="w-8 h-8 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-600 flex-shrink-0">
-              <i data-lucide="file-text" class="w-4 h-4"></i>
+        <div class="border border-gray-200 rounded-xl p-4 bg-white hover:border-gray-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div class="flex items-center space-x-3 min-w-0">
+            <div class="w-10 h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-700 shrink-0">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center space-x-2">
-                <span class="text-xs font-semibold text-gray-900 truncate max-w-[150px] sm:max-w-xs">${d.filename}</span>
-                <span class="text-[11px] font-mono text-gray-500 whitespace-nowrap">
+                <span class="text-sm font-bold text-gray-900 truncate max-w-[200px] sm:max-w-md">${d.filename}</span>
+                <span class="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded whitespace-nowrap">
                   ${(d.rows || 0).toLocaleString()} × ${d.columns || 0}
                 </span>
               </div>
-              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-xs text-gray-500">
-                <span>${d.analyzedDateStr || 'Recently'}</span>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-xs text-gray-500">
+                <span class="font-medium text-gray-700">${d.analyzedDateStr || 'Recently'}</span>
                 <span>•</span>
-                <span class="truncate max-w-[120px]">Target: <span class="text-gray-700 font-medium">${d.targetCol}</span></span>
+                <span>Size: <span class="font-mono text-gray-600">${d.memorySize || 'N/A'}</span></span>
                 <span>•</span>
-                <span>Nulls: ${d.missingPct}%</span>
+                <span class="truncate max-w-[140px]">Target: <span class="text-gray-800 font-semibold">${d.targetCol || 'None'}</span></span>
+                <span>•</span>
+                <span>Nulls: <span class="font-mono">${d.missingPct || 0}%</span></span>
               </div>
             </div>
           </div>
 
-          <div class="flex items-center justify-between sm:flex-col sm:items-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-100 flex-shrink-0">
-            <div class="text-xs font-semibold text-gray-900">${d.qualityScore}/100</div>
-            <div class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Quality Score</div>
+          <div class="flex items-center justify-between sm:flex-col sm:items-end border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-100 shrink-0">
+            ${scoreBadge}
+            <div class="text-[10px] text-gray-400 font-medium mt-1">Audit Record</div>
           </div>
         </div>
       `;
     });
 
-    container.innerHTML = html;
-    lucide.createIcons();
+    if (fullContainer) fullContainer.innerHTML = html;
+    if (modalContainer) modalContainer.innerHTML = html;
+    if (window.lucide) lucide.createIcons();
   } catch (err) {
     console.error("Error loading analysis history:", err);
-    container.innerHTML = `<div class="text-xs text-red-500 text-center py-4">Failed to load history: ${err.message}</div>`;
+    const errHtml = `<div class="text-xs text-red-500 text-center py-6">Failed to load history: ${err.message}</div>`;
+    if (fullContainer) fullContainer.innerHTML = errHtml;
+    if (modalContainer) modalContainer.innerHTML = errHtml;
   }
 }

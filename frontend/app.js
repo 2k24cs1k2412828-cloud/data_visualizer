@@ -255,18 +255,42 @@ function renderAppWithData(filename, data) {
     recordAnalysisInHistory(filename, data);
   }
 
-  // Hide home landing screen, show dashboard
-  document.getElementById('heroUploadState').classList.add('hidden');
-  document.getElementById('dashboardState').classList.remove('hidden');
+  // Hide home landing screen and ALL full-page workspace sections completely
+  const heroState = document.getElementById('heroUploadState');
+  const edaSection = document.getElementById('fullPageEdaSection');
+  const synthSection = document.getElementById('fullPageSynthesizerSection');
+  const readinessSection = document.getElementById('fullPageReadinessSection');
+  const preprocessSection = document.getElementById('fullPagePreprocessSection');
+  const preprocessResultsSection = document.getElementById('fullPagePreprocessResultsSection');
+  const profileSection = document.getElementById('fullPageProfileSection');
+  const dashboardState = document.getElementById('dashboardState');
+
+  if (heroState) heroState.classList.add('hidden');
+  if (edaSection) edaSection.classList.add('hidden');
+  if (synthSection) synthSection.classList.add('hidden');
+  if (readinessSection) readinessSection.classList.add('hidden');
+  if (preprocessSection) preprocessSection.classList.add('hidden');
+  if (preprocessResultsSection) preprocessResultsSection.classList.add('hidden');
+  if (profileSection) profileSection.classList.add('hidden');
+
+  // Display the clean, dedicated Analysis Dashboard
+  if (dashboardState) dashboardState.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   if (window.lucide) lucide.createIcons();
   
   // Header badge
   const badge = document.getElementById('activeFileBadge');
-  badge.classList.remove('hidden');
-  badge.classList.add('flex');
-  document.getElementById('activeFileName').textContent = filename;
+  if (badge) {
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+  }
+  const nameEl = document.getElementById('activeFileName');
+  if (nameEl) nameEl.textContent = filename;
   const inv = data.investigations;
-  document.getElementById('activeFileShape').textContent = `${inv.shape.rows} × ${inv.shape.columns}`;
+  const shapeEl = document.getElementById('activeFileShape');
+  if (shapeEl && inv && inv.shape) {
+    shapeEl.textContent = `${inv.shape.rows} × ${inv.shape.columns}`;
+  }
 
   // Target Select options
   const targetSelect = document.getElementById('targetSelect');
@@ -1219,3 +1243,594 @@ function downloadCleanReport() {
   dlAnchorElem.setAttribute("download", `qubrix_audit_${Date.now()}.json`);
   dlAnchorElem.click();
 }
+
+// =========================================================
+// MULTI-FEATURE FULL-PAGE ROUTING & NAVIGATION
+// =========================================================
+function navigateToFeaturePage(featureId) {
+  if (!requireAuth()) return;
+
+  const heroState = document.getElementById('heroUploadState');
+  const dashboardState = document.getElementById('dashboardState');
+  const edaSection = document.getElementById('fullPageEdaSection');
+  const synthSection = document.getElementById('fullPageSynthesizerSection');
+  const readinessSection = document.getElementById('fullPageReadinessSection');
+  const preprocessSection = document.getElementById('fullPagePreprocessSection');
+  const preprocessResultsSection = document.getElementById('fullPagePreprocessResultsSection');
+  const profileSection = document.getElementById('fullPageProfileSection');
+
+  // Hide landing hero and active analysis dashboard
+  if (heroState) heroState.classList.add('hidden');
+  if (dashboardState) dashboardState.classList.add('hidden');
+
+  // Hide all full-page sections first
+  if (edaSection) edaSection.classList.add('hidden');
+  if (synthSection) synthSection.classList.add('hidden');
+  if (readinessSection) readinessSection.classList.add('hidden');
+  if (preprocessSection) preprocessSection.classList.add('hidden');
+  if (preprocessResultsSection) preprocessResultsSection.classList.add('hidden');
+  if (profileSection) profileSection.classList.add('hidden');
+
+  if (featureId === 'eda') {
+    if (edaSection) edaSection.classList.remove('hidden');
+  } else if (featureId === 'synthesizer') {
+    if (synthSection) synthSection.classList.remove('hidden');
+  } else if (featureId === 'preprocess' || featureId === 'readiness') {
+    if (preprocessSection) preprocessSection.classList.remove('hidden');
+    else if (readinessSection) readinessSection.classList.remove('hidden');
+  } else if (featureId === 'preprocess_results') {
+    if (preprocessResultsSection) preprocessResultsSection.classList.remove('hidden');
+  } else if (featureId === 'profile') {
+    if (profileSection) profileSection.classList.remove('hidden');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  lucide.createIcons();
+}
+
+// Return to clean Home landing view from any full page
+function returnToHome() {
+  const dashboardState = document.getElementById('dashboardState');
+  const heroUploadState = document.getElementById('heroUploadState');
+  const activeFileBadge = document.getElementById('activeFileBadge');
+  const fileInput = document.getElementById('fileUploadInput');
+  const edaSection = document.getElementById('fullPageEdaSection');
+  const synthSection = document.getElementById('fullPageSynthesizerSection');
+  const readinessSection = document.getElementById('fullPageReadinessSection');
+  const preprocessSection = document.getElementById('fullPagePreprocessSection');
+  const preprocessResultsSection = document.getElementById('fullPagePreprocessResultsSection');
+  const profileSection = document.getElementById('fullPageProfileSection');
+
+  if (dashboardState) dashboardState.classList.add('hidden');
+  if (edaSection) edaSection.classList.add('hidden');
+  if (synthSection) synthSection.classList.add('hidden');
+  if (readinessSection) readinessSection.classList.add('hidden');
+  if (preprocessSection) preprocessSection.classList.add('hidden');
+  if (preprocessResultsSection) preprocessResultsSection.classList.add('hidden');
+  if (profileSection) profileSection.classList.add('hidden');
+
+  if (heroUploadState) heroUploadState.classList.remove('hidden');
+  if (activeFileBadge) {
+    activeFileBadge.classList.add('hidden');
+    activeFileBadge.classList.remove('flex');
+  }
+  if (fileInput) fileInput.value = '';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  lucide.createIcons();
+}
+
+// =========================================================
+// MULTI-FILE SYNTHESIS WORKFLOW
+// =========================================================
+let currentSynthesizedResult = null;
+let fullSelectedFiles = [];
+
+function setFullSynthPrompt(text) {
+  if (!requireAuth()) return;
+  const promptEl = document.getElementById('fullSynthPrompt');
+  if (promptEl) {
+    promptEl.value = text;
+    promptEl.focus();
+  }
+}
+
+function handleFullSynthFilesSelected(event) {
+  if (!requireAuth()) {
+    event.target.value = '';
+    return;
+  }
+  const input = event.target;
+  if (!input.files || input.files.length === 0) return;
+
+  fullSelectedFiles = Array.from(input.files);
+  renderSelectedFilesList();
+}
+
+function renderSelectedFilesList() {
+  const container = document.getElementById('selectedFilesChips');
+  const display = document.getElementById('fullSynthFileDisplay');
+  if (!container) return;
+
+  if (fullSelectedFiles.length === 0) {
+    container.innerHTML = '';
+    if (display) display.textContent = "Drag and drop files here, or click to browse";
+    return;
+  }
+
+  if (display) {
+    display.innerHTML = `<span class="font-bold text-gray-900">${fullSelectedFiles.length} file(s) selected</span> <span class="text-xs text-gray-500 font-normal">(Click or drag more to replace)</span>`;
+  }
+
+  container.innerHTML = fullSelectedFiles.map((file, idx) => {
+    const ext = file.name.split('.').pop().toUpperCase();
+    const sizeKb = (file.size / 1024).toFixed(1);
+    return `
+      <div class="inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs">
+        <span class="font-bold text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-800">${ext}</span>
+        <span class="font-medium text-gray-900 max-w-[150px] truncate">${file.name}</span>
+        <span class="text-gray-400 font-mono text-[10px]">(${sizeKb} KB)</span>
+        <button type="button" onclick="removeSelectedFile(${idx})" class="text-gray-400 hover:text-red-600 transition ml-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function removeSelectedFile(index) {
+  fullSelectedFiles.splice(index, 1);
+  renderSelectedFilesList();
+}
+
+async function executeFullSynthesis() {
+  if (!requireAuth()) return;
+  const promptInput = document.getElementById('fullSynthPrompt');
+  const autoVizInput = document.getElementById('fullSynthAutoViz');
+  const errBox = document.getElementById('fullSynthErrorMsg');
+  const submitBtn = document.getElementById('fullSynthBtn');
+  const submitBtnText = document.getElementById('fullSynthBtnText');
+  const successBox = document.getElementById('fullSynthSuccessBox');
+
+  if (fullSelectedFiles.length === 0) {
+    errBox.textContent = "Please select at least one file (PDF, JSON, Excel, TXT, or CSV) to synthesize.";
+    errBox.classList.remove('hidden');
+    return;
+  }
+
+  const prompt = promptInput ? promptInput.value.trim() : "";
+  const autoViz = autoVizInput ? autoVizInput.checked : true;
+
+  errBox.classList.add('hidden');
+  if (successBox) successBox.classList.add('hidden');
+
+  submitBtn.disabled = true;
+  submitBtnText.textContent = `Processing & Merging ${fullSelectedFiles.length} File(s)...`;
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingStatusText = document.getElementById('loadingStatusText');
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('hidden');
+    loadingOverlay.classList.add('flex');
+    if (loadingStatusText) loadingStatusText.textContent = `Structuring & combining ${fullSelectedFiles.length} file(s)...`;
+  }
+
+  const formData = new FormData();
+  fullSelectedFiles.forEach(f => {
+    formData.append('files', f);
+  });
+  formData.append('prompt', prompt);
+  formData.append('auto_visualize', autoViz);
+
+  try {
+    const res = await fetch('/api/synthesize', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.detail || "Failed to synthesize dataset.");
+    }
+
+    currentSynthesizedResult = result;
+
+    if (successBox) {
+      document.getElementById('fullSynthSummaryText').textContent = 
+        `Synthesized ${result.shape.rows} rows × ${result.shape.columns} columns from ${result.file_count || fullSelectedFiles.length} file(s). Output: ${result.filename}`;
+      successBox.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // If auto-visualize is checked, immediately launch into 10 Visualizations & Audits!
+    if (autoViz && result.data) {
+      renderAppWithData(result.filename, result.data);
+    }
+  } catch (err) {
+    console.error("Multi-file synthesis error:", err);
+    if (errBox) {
+      errBox.textContent = err.message || "Synthesis failed. Please review your file formats.";
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtnText.textContent = "Synthesize & Combine Files";
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+      loadingOverlay.classList.remove('flex');
+    }
+  }
+}
+
+function downloadSynthesizedCSV() {
+  if (!currentSynthesizedResult || !currentSynthesizedResult.csv_data) return;
+  const blob = new Blob([currentSynthesizedResult.csv_data], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const dlAnchor = document.createElement('a');
+  dlAnchor.href = url;
+  dlAnchor.download = currentSynthesizedResult.filename || 'synthesized_dataset.csv';
+  dlAnchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function openSynthesizedInDashboard() {
+  if (!currentSynthesizedResult || !currentSynthesizedResult.data) return;
+  renderAppWithData(currentSynthesizedResult.filename, currentSynthesizedResult.data);
+}
+
+// =========================================================
+// FEATURE 3: AUTONOMOUS PREPROCESSOR & ML ADVISOR WORKFLOW
+// =========================================================
+let currentPreprocessedResult = null;
+let preprocessSelectedFile = null;
+
+function handlePreprocessFileSelected(event) {
+  if (!requireAuth()) {
+    event.target.value = '';
+    return;
+  }
+  const input = event.target;
+  if (!input.files || input.files.length === 0) return;
+
+  preprocessSelectedFile = input.files[0];
+  const display = document.getElementById('preprocessFileDisplay');
+  if (display) {
+    const sizeKb = (preprocessSelectedFile.size / 1024).toFixed(1);
+    display.innerHTML = `
+      <span class="font-bold text-gray-900">${preprocessSelectedFile.name}</span>
+      <span class="text-xs text-gray-500 font-mono">(${sizeKb} KB)</span>
+      <span class="text-xs text-green-600 font-semibold block mt-1">Ready for automated preprocessing & ML analysis</span>
+    `;
+  }
+}
+
+async function executePreprocessDemo(sampleName) {
+  if (!requireAuth()) return;
+  navigateToFeaturePage('preprocess');
+
+  const display = document.getElementById('preprocessFileDisplay');
+  if (display) {
+    const label = sampleName === 'customer_churn' ? 'Customer Churn (Classification Demo)' : 'California Housing (Regression Demo)';
+    display.innerHTML = `
+      <span class="font-bold text-gray-900">${label}</span>
+      <span class="text-xs text-blue-600 font-semibold block mt-1">Demo dataset loaded & ready</span>
+    `;
+  }
+  preprocessSelectedFile = null;
+
+  const targetInput = document.getElementById('preprocessTargetInput');
+  if (targetInput) {
+    targetInput.value = sampleName === 'customer_churn' ? 'Churn' : 'median_house_value';
+  }
+
+  await executePreprocessing(sampleName);
+}
+
+async function executePreprocessing(sampleName = null) {
+  if (!requireAuth()) return;
+
+  const targetInput = document.getElementById('preprocessTargetInput');
+  const targetCol = targetInput ? targetInput.value.trim() : "";
+  const errBox = document.getElementById('preprocessErrorMsg');
+  const submitBtn = document.getElementById('preprocessSubmitBtn');
+  const submitBtnText = document.getElementById('preprocessSubmitBtnText');
+  const resultsContainer = document.getElementById('preprocessResultsContainer');
+
+  if (!sampleName && !preprocessSelectedFile) {
+    if (errBox) {
+      errBox.textContent = "Please upload a CSV dataset or select a demo dataset to preprocess.";
+      errBox.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (errBox) errBox.classList.add('hidden');
+  if (resultsContainer) resultsContainer.classList.add('hidden');
+
+  if (submitBtn) submitBtn.disabled = true;
+  if (submitBtnText) submitBtnText.textContent = "Cleaning data & recommending models...";
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingStatusText = document.getElementById('loadingStatusText');
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('hidden');
+    loadingOverlay.classList.add('flex');
+    if (loadingStatusText) loadingStatusText.textContent = "Autonomous Data Scientist: Cleaning nulls, capping outliers & tailoring ML models...";
+  }
+
+  const formData = new FormData();
+  if (sampleName) {
+    formData.append('use_sample', sampleName);
+  } else if (preprocessSelectedFile) {
+    formData.append('file', preprocessSelectedFile);
+  }
+
+  if (targetCol) {
+    formData.append('target_col', targetCol);
+  }
+
+  try {
+    const res = await fetch('/api/preprocess', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.detail || "Failed to preprocess dataset.");
+    }
+
+    currentPreprocessedResult = result;
+    renderPreprocessResults(result);
+
+  } catch (err) {
+    console.error("Auto-preprocessing error:", err);
+    if (errBox) {
+      errBox.textContent = err.message || "Automated preprocessing encountered an issue.";
+      errBox.classList.remove('hidden');
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+    if (submitBtnText) submitBtnText.textContent = "Clean Dataset & Generate ML Strategy";
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+      loadingOverlay.classList.remove('flex');
+    }
+  }
+}
+
+function renderPreprocessResults(result) {
+  const container = document.getElementById('preprocessResultsContainer');
+  if (!container) return;
+
+  // Header info
+  const filenameEl = document.getElementById('preprocessResultFilename');
+  const subtitleEl = document.getElementById('preprocessResultSubtitle');
+  if (filenameEl) filenameEl.textContent = result.cleaned_filename || "model_ready_dataset.csv";
+  if (subtitleEl) {
+    const targetText = result.target_col ? ` | Target: '${result.target_col}'` : "";
+    subtitleEl.textContent = `Task: ${result.task_detail || result.ml_task}${targetText}`;
+  }
+
+  // Before vs After Metrics
+  const before = result.audit_before || {};
+  const after = result.audit_after || {};
+
+  const beforeScore = before.health_score || 0;
+  const afterScore = after.health_score || 100;
+  const scoreDiff = afterScore - beforeScore;
+
+  const scoreAfterEl = document.getElementById('metricScoreAfter');
+  const scoreChangeEl = document.getElementById('metricScoreChange');
+  const scoreBeforeEl = document.getElementById('metricScoreBefore');
+  if (scoreAfterEl) scoreAfterEl.textContent = `${afterScore}/100`;
+  if (scoreBeforeEl) scoreBeforeEl.textContent = `Was ${beforeScore}/100`;
+  if (scoreChangeEl) {
+    scoreChangeEl.textContent = scoreDiff >= 0 ? `+${scoreDiff}%` : `${scoreDiff}%`;
+    scoreChangeEl.className = "text-xs font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded";
+  }
+
+  const nullsAfterEl = document.getElementById('metricNullsAfter');
+  const nullsBeforeEl = document.getElementById('metricNullsBefore');
+  if (nullsAfterEl) nullsAfterEl.textContent = `${after.total_nulls || 0} (${after.null_pct || 0}%)`;
+  if (nullsBeforeEl) nullsBeforeEl.textContent = `Was ${before.total_nulls || 0} (${before.null_pct || 0}%)`;
+
+  const outliersEl = document.getElementById('metricOutliersCapped');
+  if (outliersEl) outliersEl.textContent = `${after.outliers_capped || 0} Capped`;
+
+  const shapeAfterEl = document.getElementById('metricShapeAfter');
+  const colsDroppedEl = document.getElementById('metricColsDropped');
+  if (shapeAfterEl) shapeAfterEl.textContent = `${(after.rows || 0).toLocaleString()} × ${(after.columns || 0)}`;
+  if (colsDroppedEl) {
+    const dropped = after.columns_dropped || 0;
+    colsDroppedEl.textContent = dropped === 1 ? "1 non-informative column removed" : `${dropped} non-informative columns removed`;
+  }
+
+  // Data Engineering Actions Log
+  const actionsContainer = document.getElementById('preprocessActionsList');
+  const actionsCountBadge = document.getElementById('actionsCountBadge');
+  const actions = result.actions_taken || [];
+  if (actionsCountBadge) actionsCountBadge.textContent = `${actions.length} transformations applied`;
+  if (actionsContainer) {
+    if (actions.length === 0) {
+      actionsContainer.innerHTML = `
+        <div class="text-xs text-gray-500 p-3 bg-gray-50 rounded-lg">Dataset was already fully clean with zero missing values or outliers.</div>
+      `;
+    } else {
+      actionsContainer.innerHTML = actions.map(action => `
+        <div class="flex items-start space-x-2 text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+          <i data-lucide="check" class="w-4 h-4 text-gray-600 shrink-0 mt-0.5"></i>
+          <span class="leading-relaxed">${action}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Machine Learning Model Recommendations
+  const recs = result.ml_recommendations || {};
+  const taskBadge = document.getElementById('mlTaskBadge');
+  if (taskBadge) taskBadge.textContent = recs.task_type || result.task_detail || "Machine Learning";
+
+  const cardsGrid = document.getElementById('mlModelCardsGrid');
+  if (cardsGrid) {
+    const primary = recs.primary_model || { name: "Gradient Boosted Trees", type: "Ensemble", rationale: "Standard top performer on tabular features." };
+    const baseline = recs.baseline_model || { name: "Linear Benchmark", type: "Linear Model", rationale: "Fast reference point for model iteration." };
+    const interp = recs.interpretable_model || { name: "Decision Tree / EBM", type: "Rule-Based", rationale: "Transparent splits for regulatory interpretability." };
+
+    let primaryHyperHtml = '';
+    if (primary.hyperparameters) {
+      if (typeof primary.hyperparameters === 'string') {
+        primaryHyperHtml = primary.hyperparameters.split(',').map(item => `
+          <span class="text-[10px] bg-white border border-blue-200 text-blue-900 px-1.5 py-0.5 rounded font-mono">${item.trim()}</span>
+        `).join('');
+      } else if (typeof primary.hyperparameters === 'object') {
+        primaryHyperHtml = Object.entries(primary.hyperparameters).map(([k, v]) => `
+          <span class="text-[10px] bg-white border border-blue-200 text-blue-900 px-1.5 py-0.5 rounded font-mono">${k}: ${v}</span>
+        `).join('');
+      }
+    }
+
+    cardsGrid.innerHTML = `
+      <!-- 1. Primary Model Card -->
+      <div class="border border-blue-200 bg-blue-50/20 rounded-xl p-5 flex flex-col justify-between shadow-2xs">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">Top Recommendation</span>
+            <span class="text-[11px] text-gray-500 font-mono">${primary.type || 'Ensemble'}</span>
+          </div>
+          <h5 class="text-base font-bold text-gray-900 mb-2">${primary.name}</h5>
+          <p class="text-xs text-gray-600 leading-relaxed mb-4">${primary.rationale || primary.why || ''}</p>
+          ${primary.strengths && primary.strengths.length > 0 ? `
+            <div class="mb-3">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Key Strengths</span>
+              <ul class="text-[11px] text-gray-600 space-y-1 list-disc list-inside">
+                ${primary.strengths.map(s => `<li>${s}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+        ${primaryHyperHtml ? `
+          <div class="pt-3 border-t border-blue-100 mt-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1.5">Suggested Hyperparameters</span>
+            <div class="flex flex-wrap gap-1">
+              ${primaryHyperHtml}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- 2. Baseline Model Card -->
+      <div class="border border-gray-200 bg-gray-50/40 rounded-xl p-5 flex flex-col justify-between shadow-2xs">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-800 uppercase tracking-wider">Fast Baseline</span>
+            <span class="text-[11px] text-gray-500 font-mono">${baseline.type || 'Linear'}</span>
+          </div>
+          <h5 class="text-base font-bold text-gray-900 mb-2">${baseline.name}</h5>
+          <p class="text-xs text-gray-600 leading-relaxed mb-4">${baseline.rationale || baseline.why || ''}</p>
+        </div>
+        <div class="pt-3 border-t border-gray-200 mt-2 text-[11px] text-gray-500">
+          Ideal for fast iteration benchmark and latency-sensitive deployments.
+        </div>
+      </div>
+
+      <!-- 3. Interpretable Model Card -->
+      <div class="border border-purple-200 bg-purple-50/20 rounded-xl p-5 flex flex-col justify-between shadow-2xs">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 uppercase tracking-wider">Explainable</span>
+            <span class="text-[11px] text-gray-500 font-mono">${interp.type || 'Rule-Based'}</span>
+          </div>
+          <h5 class="text-base font-bold text-gray-900 mb-2">${interp.name}</h5>
+          <p class="text-xs text-gray-600 leading-relaxed mb-4">${interp.rationale || interp.why || ''}</p>
+        </div>
+        <div class="pt-3 border-t border-purple-100 mt-2 text-[11px] text-gray-500">
+          Provides feature attributions and transparent decision boundaries for stakeholders.
+        </div>
+      </div>
+    `;
+  }
+
+  // Validation strategy & Metrics
+  const valStrategyEl = document.getElementById('mlValidationStrategy');
+  if (valStrategyEl) {
+    valStrategyEl.textContent = recs.validation_strategy || "5-Fold Stratified K-Fold Cross Validation";
+  }
+
+  const metricsContainer = document.getElementById('mlRecommendedMetrics');
+  if (metricsContainer) {
+    const metrics = recs.recommended_metrics || ["Accuracy", "ROC-AUC", "F1-Score"];
+    metricsContainer.innerHTML = metrics.map(m => {
+      const label = (typeof m === 'object' && m && m.metric) ? m.metric : String(m);
+      const titleAttr = (typeof m === 'object' && m && m.purpose) ? ` title="${m.purpose}"` : '';
+      return `<span class="text-[11px] font-semibold bg-white border border-gray-200 text-gray-700 px-2 py-0.5 rounded-md font-mono"${titleAttr}>${label}</span>`;
+    }).join('');
+  }
+
+  // Feature tips
+  const tipsContainer = document.getElementById('mlFeatureTips');
+  if (tipsContainer) {
+    const tips = recs.feature_engineering_tips || [
+      "Dataset has been fully imputed and Tukey outlier capped.",
+      "Check correlation matrix in EDA Visualizer to prune collinear pairs.",
+      "Consider Target Encoding or Frequency Encoding for remaining high-cardinality nominals."
+    ];
+    tipsContainer.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+  }
+
+  // Hide all other screens and display the dedicated full-screen results page
+  const heroState = document.getElementById('heroUploadState');
+  const edaSection = document.getElementById('fullPageEdaSection');
+  const synthSection = document.getElementById('fullPageSynthesizerSection');
+  const preprocessSection = document.getElementById('fullPagePreprocessSection');
+  const profileSection = document.getElementById('fullPageProfileSection');
+  const dashboardState = document.getElementById('dashboardState');
+  const resultsSection = document.getElementById('fullPagePreprocessResultsSection');
+
+  if (heroState) heroState.classList.add('hidden');
+  if (edaSection) edaSection.classList.add('hidden');
+  if (synthSection) synthSection.classList.add('hidden');
+  if (preprocessSection) preprocessSection.classList.add('hidden');
+  if (profileSection) profileSection.classList.add('hidden');
+  if (dashboardState) dashboardState.classList.add('hidden');
+
+  if (resultsSection) resultsSection.classList.remove('hidden');
+  if (container) container.classList.remove('hidden');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (window.lucide) lucide.createIcons();
+}
+
+function downloadPreprocessedCSV() {
+  if (!currentPreprocessedResult || !currentPreprocessedResult.csv_data) return;
+  const blob = new Blob([currentPreprocessedResult.csv_data], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const dlAnchor = document.createElement('a');
+  dlAnchor.href = url;
+  dlAnchor.download = currentPreprocessedResult.cleaned_filename || 'model_ready_dataset.csv';
+  dlAnchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function openPreprocessedInVisualizer() {
+  if (!currentPreprocessedResult || !currentPreprocessedResult.eda_data) return;
+  renderAppWithData(currentPreprocessedResult.cleaned_filename, currentPreprocessedResult.eda_data);
+}
+
+function resetPreprocessView() {
+  preprocessSelectedFile = null;
+  currentPreprocessedResult = null;
+  const fileInput = document.getElementById('preprocessFileInput');
+  if (fileInput) fileInput.value = '';
+  const display = document.getElementById('preprocessFileDisplay');
+  if (display) display.textContent = "Drag and drop raw CSV here, or click to browse";
+  const targetInput = document.getElementById('preprocessTargetInput');
+  if (targetInput) targetInput.value = '';
+  const errBox = document.getElementById('preprocessErrorMsg');
+  if (errBox) errBox.classList.add('hidden');
+  navigateToFeaturePage('preprocess');
+}
+
+

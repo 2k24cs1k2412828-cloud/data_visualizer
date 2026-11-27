@@ -17,7 +17,10 @@ Instead of writing dozens of lines of repetitive code to inspect column types, c
 1. [Account Creation & Sign In](#-account-creation--sign-in)
 2. [User Profile & Onboarding](#-user-profile--onboarding)
 3. [Analysis History](#-analysis-history)
-4. [Uploading & Analyzing Data](#-uploading--analyzing-data)
+4. [The 3 Core Workspaces](#-the-3-core-workspaces)
+   - [Workspace 1: Automated EDA & Visualizer](#workspace-1-automated-eda--visualizer)
+   - [Workspace 2: Multi-Format Dataset Synthesizer (Batch Mode)](#workspace-2-multi-format-dataset-synthesizer-batch-mode)
+   - [Workspace 3: Model Readiness & Quality Hub](#workspace-3-model-readiness--quality-hub)
 5. [Demo Datasets](#-demo-datasets)
 6. [The 10 Data Health Investigations](#-the-10-data-health-investigations)
 7. [The 10 Interactive Visualizations](#-the-10-interactive-visualizations)
@@ -85,25 +88,30 @@ Every time you analyze a dataset on QUBRIX, a summary card is saved to your acco
 
 ---
 
-## 🚀 Uploading & Analyzing Data
+## 🚀 The 3 Core Workspaces
 
-Analyzing your data takes just three steps:
+QUBRIX organizes your data engineering and analysis workflows across three dedicated full-page workspaces accessible from the home screen:
 
-### 1. Choose Your File
-- Click **"Upload CSV"** in the top navigation bar, OR
-- Drag and drop your `.csv` file directly onto the upload box on the homepage, OR
-- Click **"Browse Files"** to pick a file from your computer.
+### Workspace 1: Automated EDA & Visualizer
+Dedicated to exploring and visualizing tabular datasets:
+- **Direct CSV Upload**: Accepts files up to 200MB.
+- **Instant Processing**: Computes 10 pre-modeling audits and prepares 10 interactive charts in seconds.
+- **Sample Datasets**: Built-in access to Customer Churn and Housing Prices datasets.
 
-*(Note: If you are not signed in, QUBRIX will gently prompt you to sign in before processing begins.)*
+### Workspace 2: Multi-Format Dataset Synthesizer (Batch Mode)
+Designed to handle messy, non-CSV, or unstructured files and prepare them for machine learning training:
+- **Accepts N Number of Files**: Upload single or multiple files in **PDF, JSON, Excel (XLSX), TXT, CSV, or Logs**.
+- **Interactive File Queue**: View file chips with file type indicators, size, and individual remove controls (`×`).
+- **Natural Language Extraction Prompt**: Tell QUBRIX in plain English how to structure your data (e.g., *"Extract customer names, invoice dates, item counts, and total prices into separate columns"*).
+- **Automated Merger**: Combines all heterogeneous files into one consolidated, model-ready CSV dataset.
+- **Export & Launch**: One-click download of the clean CSV, or direct automatic launch into the 10 Visualizations & Audits dashboard.
 
-### 2. Automated Processing
-Once uploaded, QUBRIX reads your dataset, detects column structures, detects potential target variables, runs all statistical algorithms, and prepares the visualization charts. A clean loading screen keeps you informed during this brief processing step.
-
-### 3. The Interactive Dashboard
-Once processing completes, your screen switches directly to the **Analysis Dashboard**, organized into three organized tabs:
-- **10 Investigations**: In-depth health checks, summary tables, and quality alerts.
-- **10 Visualizations**: Interactive, zoomable charts for distributions, outliers, and correlations.
-- **Raw Data**: A spreadsheet-style preview of your dataset.
+### Workspace 3: Model Readiness & Quality Hub
+Focuses strictly on machine learning hygiene before training:
+- **Target Leakage Protection**: Flags columns that duplicate or trivially predict the target variable.
+- **ID & Cardinality Scanner**: Detects unique identifier keys and zero-variance columns that provide zero predictive value.
+- **Tukey 1.5×IQR Outlier Scanner**: Calculates interquartile bounds and outlier counts with capping suggestions.
+- **Pre-Configured Audit Demos**: Instant access to model quality audits without uploading files.
 
 ---
 

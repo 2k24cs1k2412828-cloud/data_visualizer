@@ -140,45 +140,622 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
 
     <!-- ========================================================= -->
-    <!-- 1. HOME SCREEN / LANDING PAGE (DEFAULT INITIAL VIEW)       -->
+    <!-- 1. HOME SCREEN / LANDING PAGE (3 ADAPTIVE HUBS)            -->
     <!-- ========================================================= -->
-    <section id="heroUploadState" class="max-w-3xl mx-auto py-3 sm:py-6">
+    <section id="heroUploadState" class="max-w-6xl mx-auto py-6 sm:py-10 text-center">
       
       <!-- Headline & Subtitle -->
-      <div class="text-center mb-6 sm:mb-8">
-        <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
-          Automated Exploratory Data Analysis
+      <div class="mb-10 sm:mb-14">
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+          Intelligent Data Engineering & Visual Intelligence
         </h1>
-        <p class="mt-2.5 sm:mt-3 text-sm sm:text-base text-gray-600 leading-relaxed max-w-2xl mx-auto">
-          Upload any CSV to immediately run 10 pre-modeling audits and generate 10 statistical visualizations across distributions, outliers, cardinality, and feature relationships.
+        <p class="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600 leading-relaxed max-w-2xl mx-auto">
+          Transform unstructured documents into unified datasets, audit pre-modeling data health, and generate 10 statistical visualizations across three specialized full-page workspaces.
         </p>
       </div>
 
-      <!-- Professional Upload Box -->
-      <div id="dropZone" class="bg-white border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-xl p-6 sm:p-10 text-center cursor-pointer transition">
-        <div class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2.5 sm:mb-3 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-          <i data-lucide="upload-cloud" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      <!-- 3 Full-Width Adaptive Cards (Adaption Labs Style) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        
+        <!-- CARD 1: Automated EDA & Audit -->
+        <div onclick="if (!requireAuth()) return; navigateToFeaturePage('eda');" class="card-base p-7 flex flex-col justify-between hover:shadow-lg hover:border-gray-300 transition duration-200 bg-white cursor-pointer">
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900 mb-6 border border-gray-200 shadow-2xs">
+              <i data-lucide="bar-chart-3" class="w-7 h-7"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-2">Automated EDA & Visualizer</h2>
+            <p class="text-xs text-gray-600 leading-relaxed mb-8">
+              Deep statistical profiling for tabular data. Runs 10 pre-modeling audits and generates 10 interactive charts across distributions, outliers, cardinality, and correlation heatmaps.
+            </p>
+          </div>
+          <div class="space-y-2.5" onclick="event.stopPropagation()">
+            <button type="button" onclick="navigateToFeaturePage('eda')" class="w-full py-2.5 px-4 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs flex items-center justify-center space-x-2">
+              <span>Open EDA Workspace</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+            <button type="button" onclick="loadSample('customer_churn')" class="w-full py-2 px-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium transition text-center">
+              Try Sample Dataset
+            </button>
+          </div>
         </div>
-        <div class="text-sm font-semibold text-gray-900">Choose a CSV file or drag and drop</div>
-        <p class="text-xs text-gray-500 mt-1 mb-3 sm:mb-4">CSV files up to 200MB are supported</p>
-        <button type="button" onclick="event.stopPropagation(); triggerUpload();" class="inline-flex items-center px-3.5 sm:px-4 py-2 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 shadow-2xs">
-          Browse Files
-        </button>
+
+        <!-- CARD 2: Multi-Format Dataset Synthesizer -->
+        <div onclick="if (!requireAuth()) return; navigateToFeaturePage('synthesizer');" class="card-base p-7 flex flex-col justify-between hover:shadow-lg hover:border-gray-300 transition duration-200 bg-white cursor-pointer">
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900 mb-6 border border-gray-200 shadow-2xs">
+              <i data-lucide="layers" class="w-7 h-7"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-2">Dataset Synthesizer</h2>
+            <p class="text-xs text-gray-600 leading-relaxed mb-8">
+              Convert n number of heterogeneous files (PDFs, JSON, Excel, TXT, or logs) with customized prompt instructions into a unified, model-ready CSV training dataset.
+            </p>
+          </div>
+          <div class="space-y-2.5" onclick="event.stopPropagation()">
+            <button type="button" onclick="navigateToFeaturePage('synthesizer')" class="w-full py-2.5 px-4 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs flex items-center justify-center space-x-2">
+              <span>Open Synthesizer Hub</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+            <button type="button" onclick="navigateToFeaturePage('synthesizer')" class="w-full py-2 px-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium transition text-center">
+              Multi-File Batch Mode
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD 3: Autonomous Data Preprocessor & ML Advisor -->
+        <div onclick="if (!requireAuth()) return; navigateToFeaturePage('preprocess');" class="card-base p-7 flex flex-col justify-between hover:shadow-lg hover:border-gray-300 transition duration-200 bg-white cursor-pointer">
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900 mb-6 border border-gray-200 shadow-2xs">
+              <i data-lucide="sparkles" class="w-7 h-7"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-2">Auto-Preprocessor & ML Advisor</h2>
+            <p class="text-xs text-gray-600 leading-relaxed mb-8">
+              Autonomous data science engine. Preprocesses & cleans raw datasets (missing imputation, Tukey outlier capping, leakage purge) and provides optimal ML algorithm recommendations with a model-ready CSV.
+            </p>
+          </div>
+          <div class="space-y-2.5" onclick="event.stopPropagation()">
+            <button type="button" onclick="navigateToFeaturePage('preprocess')" class="w-full py-2.5 px-4 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs flex items-center justify-center space-x-2">
+              <span>Open Preprocessor Hub</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+            <button type="button" onclick="executePreprocessDemo('customer_churn')" class="w-full py-2 px-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium transition text-center">
+              Quick Clean Demo (Churn)
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Overview of Features Grid -->
-      <div class="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-left">
-        <div class="card-base p-3.5 sm:p-4">
-          <h2 class="text-sm font-semibold text-gray-900 mb-1">Part 1: 10 Investigations</h2>
-          <p class="text-xs text-gray-600 leading-relaxed">
-            Dataset shape, inferred data types, null counts & percentage, exact & partial duplicates, five-number summary stats, cardinality & ID flags, target distribution, Tukey IQR outliers, correlation matrix, and data quality checks.
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FULL-PAGE FEATURE 1: DEDICATED EDA WORKSPACE               -->
+    <!-- ========================================================= -->
+    <section id="fullPageEdaSection" class="hidden max-w-4xl mx-auto py-6 space-y-6">
+      
+      <!-- Header bar with Back button -->
+      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <button type="button" onclick="returnToHome()" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-2xs">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to Home</span>
+        </button>
+        <div class="text-right">
+          <h2 class="text-base font-bold text-gray-900">Automated EDA Workspace</h2>
+          <p class="text-xs text-gray-500">10 Investigations & 10 Statistical Visualizations</p>
+        </div>
+      </div>
+
+      <!-- Dedicated EDA Upload Box -->
+      <div class="card-base p-8 text-center bg-white space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center text-gray-700">
+          <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-gray-900">Upload CSV Dataset for Profiling</h3>
+          <p class="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+            Drag and drop your dataset to automatically scan distributions, correlation matrix, missingness, and data hygiene. Supports CSV up to 200MB.
           </p>
         </div>
-        <div class="card-base p-3.5 sm:p-4">
-          <h2 class="text-sm font-semibold text-gray-900 mb-1">Part 2: 10 Core Visualizations</h2>
+        <div class="pt-2 flex items-center justify-center space-x-3">
+          <button type="button" onclick="triggerUpload()" class="px-5 py-2.5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs flex items-center space-x-2">
+            <i data-lucide="file-up" class="w-4 h-4"></i>
+            <span>Browse CSV File</span>
+          </button>
+          <button type="button" onclick="loadSample('customer_churn')" class="px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-xs font-medium text-gray-700 transition">
+            Load Customer Churn Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- Detailed feature explanations for this page -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+        <div class="card-base p-5 bg-white">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Part 1: 10 Statistical Investigations</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
-            Missing values heatmap, numerical histograms, box plots, categorical count plots, correlation heatmap, scatter plots, target distribution plot, pair plot matrix, feature vs target plots, and time-series / sequence plots.
+            Instant calculation of dataset dimensions, inferred column types, complete null analysis with imputation guidance, duplicate record detection, 5-number descriptive summaries, high-cardinality flags, target class distributions, Tukey 1.5×IQR outlier detection, Pearson correlation rankings, and an overall 100-point cleanliness score.
           </p>
+        </div>
+        <div class="card-base p-5 bg-white">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Part 2: 10 Interactive Visualizations</h3>
+          <p class="text-xs text-gray-600 leading-relaxed">
+            High-density 2D missing values heatmap, numerical frequency distribution histograms, interactive box-and-whisker outlier plots, categorical frequency count charts, continuous correlation heatmaps (-1.0 to +1.0), bivariate scatter plots, dynamic target distribution charts, pairwise scatter matrices, feature-vs-target comparisons, and time-series sequence plots.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FULL-PAGE FEATURE 2: MULTI-FILE SYNTHESIZER HUB            -->
+    <!-- ========================================================= -->
+    <section id="fullPageSynthesizerSection" class="hidden max-w-4xl mx-auto py-6 space-y-6">
+      
+      <!-- Header bar with Back button -->
+      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <button type="button" onclick="returnToHome()" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-2xs">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to Home</span>
+        </button>
+        <div class="text-right">
+          <h2 class="text-base font-bold text-gray-900">Multi-Format Dataset Synthesizer</h2>
+          <p class="text-xs text-gray-500">Extract, clean, and combine N number of files into a single CSV</p>
+        </div>
+      </div>
+
+      <!-- Synthesis Form Card -->
+      <div class="card-base p-6 sm:p-8 bg-white space-y-6">
+        
+        <div id="fullSynthErrorMsg" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg"></div>
+
+        <!-- 1. Multi-File Upload Drop Area -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">1. Select Files (Single or Multiple Batch)</label>
+            <span class="text-[11px] text-gray-400">PDF, JSON, Excel (XLSX), TXT, CSV, Logs</span>
+          </div>
+          <div id="fullSynthDropArea" onclick="if (!requireAuth()) return; document.getElementById('fullSynthFileInput').click()" class="border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-xl p-8 text-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition">
+            <input type="file" id="fullSynthFileInput" multiple accept=".pdf,.json,.xlsx,.xls,.txt,.csv,.log" class="hidden" onchange="handleFullSynthFilesSelected(event)">
+            <div class="w-12 h-12 mx-auto rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-700 mb-3 shadow-2xs">
+              <i data-lucide="folder-up" class="w-6 h-6"></i>
+            </div>
+            <div id="fullSynthFileDisplay" class="text-sm font-semibold text-gray-900">
+              Drag and drop files here, or click to browse
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Select as many files as you need — they will be parsed and merged together</p>
+          </div>
+
+          <!-- Selected Files List Container -->
+          <div id="selectedFilesChips" class="flex flex-wrap gap-2 mt-3 empty:hidden"></div>
+        </div>
+
+        <!-- 2. Extraction & Cleaning Instructions -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">2. Extraction & Customization Instructions</label>
+            <span class="text-[11px] text-gray-500 font-mono">Optional Natural Language Prompt</span>
+          </div>
+          <textarea id="fullSynthPrompt" rows="3" placeholder="e.g., 'Extract customer names, invoice dates, line items, and total amounts. Clean null values and standardize column headers.'" class="w-full px-3.5 py-2.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 leading-relaxed"></textarea>
+          
+          <div class="flex flex-wrap items-center gap-2 mt-2.5">
+            <span class="text-[11px] text-gray-500">Quick templates:</span>
+            <button type="button" onclick="setFullSynthPrompt('Extract all records cleanly into normalized tabular columns with appropriate data types.')" class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition">Auto-clean & normalize</button>
+            <button type="button" onclick="setFullSynthPrompt('Parse documents into Date, Vendor, Amount, and Tax columns.')" class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition">Invoice & Receipt Parser</button>
+            <button type="button" onclick="setFullSynthPrompt('Extract question number, unit, marks, and question text into separate training columns.')" class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition">Academic / Exam Questions</button>
+          </div>
+        </div>
+
+        <!-- 3. Launch Option & Submit Button -->
+        <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="fullSynthAutoViz" checked class="rounded border-gray-300 text-gray-900 focus:ring-0">
+            <span class="text-xs text-gray-700 font-medium">Automatically open in 10 Visualizations & Audits after synthesis</span>
+          </label>
+          <button type="button" onclick="executeFullSynthesis()" id="fullSynthBtn" class="py-2.5 px-6 bg-gray-900 hover:bg-black text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center justify-center space-x-2">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span id="fullSynthBtnText">Synthesize & Combine Files</span>
+          </button>
+        </div>
+
+        <!-- Success Result Box -->
+        <div id="fullSynthSuccessBox" class="hidden p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+          <div class="flex items-center space-x-2 text-gray-900 text-sm font-semibold">
+            <i data-lucide="check" class="w-4 h-4 text-gray-800"></i>
+            <span>Dataset Synthesized & Merged Successfully!</span>
+          </div>
+          <div class="text-xs text-gray-600" id="fullSynthSummaryText">Extracted records ready for download.</div>
+          <div class="flex items-center space-x-3 pt-1">
+            <button type="button" onclick="downloadSynthesizedCSV()" class="px-4 py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-medium flex items-center space-x-2 shadow-2xs">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Download Clean CSV</span>
+            </button>
+            <button type="button" onclick="openSynthesizedInDashboard()" class="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-xs font-medium">
+              Open in EDA Dashboard →
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FULL-PAGE FEATURE 3: AUTONOMOUS PREPROCESSOR & ML ADVISOR  -->
+    <!-- ========================================================= -->
+    <section id="fullPagePreprocessSection" class="hidden max-w-4xl mx-auto py-6 space-y-6">
+      
+      <!-- Header bar with Back button -->
+      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <button type="button" onclick="returnToHome()" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-2xs">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to Home</span>
+        </button>
+        <div class="text-right">
+          <h2 class="text-base font-bold text-gray-900">Autonomous Preprocessor & ML Advisor</h2>
+          <p class="text-xs text-gray-500">End-to-End Cleaning, Outlier Capping & Machine Learning Algorithm Engine</p>
+        </div>
+      </div>
+
+      <!-- Input / Upload Card -->
+      <div class="card-base p-6 sm:p-8 bg-white space-y-6">
+        
+        <div id="preprocessErrorMsg" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg"></div>
+
+        <!-- 1. File Upload Drop Area -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">1. Select Raw CSV Dataset</label>
+            <span class="text-[11px] text-gray-400">CSV format up to 200MB</span>
+          </div>
+          <div id="preprocessDropArea" onclick="if (!requireAuth()) return; document.getElementById('preprocessFileInput').click()" class="border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-xl p-8 text-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition">
+            <input type="file" id="preprocessFileInput" accept=".csv" class="hidden" onchange="handlePreprocessFileSelected(event)">
+            <div class="w-12 h-12 mx-auto rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-700 mb-3 shadow-2xs">
+              <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+            </div>
+            <div id="preprocessFileDisplay" class="text-sm font-semibold text-gray-900">
+              Drag and drop raw CSV here, or click to browse
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Accepts raw, uncleaned tabular datasets with missing values, noise, or outliers</p>
+          </div>
+
+          <!-- Quick Sample Dataset Launchers -->
+          <div class="flex flex-wrap items-center gap-2 mt-3">
+            <span class="text-[11px] text-gray-500">Or test with demo data:</span>
+            <button type="button" onclick="executePreprocessDemo('customer_churn')" class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition font-medium flex items-center space-x-1.5">
+              <i data-lucide="users" class="w-3 h-3 text-gray-500"></i>
+              <span>Customer Churn (Classification)</span>
+            </button>
+            <button type="button" onclick="executePreprocessDemo('housing_prices')" class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition font-medium flex items-center space-x-1.5">
+              <i data-lucide="home" class="w-3 h-3 text-gray-500"></i>
+              <span>California Housing (Regression)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Target Variable Configuration -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">2. Target Variable (Optional)</label>
+            <span class="text-[11px] text-gray-400">For Supervised Machine Learning</span>
+          </div>
+          <input type="text" id="preprocessTargetInput" placeholder="e.g., 'Churn', 'SalePrice', 'target' (Leave blank to auto-detect from dataset)" class="w-full px-3.5 py-2.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900">
+          <p class="text-[11px] text-gray-500 mt-1.5">If specified, the engine checks for target leakage, balances class distributions, and tailors algorithm recommendations for this objective.</p>
+        </div>
+
+        <!-- 3. Actions / Submit Button -->
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-end">
+          <button type="button" onclick="executePreprocessing()" id="preprocessSubmitBtn" class="py-2.5 px-6 bg-gray-900 hover:bg-black text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center justify-center space-x-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span id="preprocessSubmitBtnText">Clean Dataset & Generate ML Strategy</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FULL-PAGE FEATURE 3B: PREPROCESSOR RESULTS WORKSPACE      -->
+    <!-- ========================================================= -->
+    <section id="fullPagePreprocessResultsSection" class="hidden max-w-5xl mx-auto py-6 space-y-6">
+
+      <!-- Header bar with Back buttons -->
+      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="navigateToFeaturePage('preprocess')" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-2xs">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Back to Upload</span>
+          </button>
+          <button type="button" onclick="returnToHome()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs font-medium text-gray-600 transition shadow-2xs">
+            <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            <span>Home</span>
+          </button>
+        </div>
+        <div class="text-right">
+          <h2 class="text-base font-bold text-gray-900">Model-Ready Dataset Analysis</h2>
+          <p class="text-xs text-gray-500">Autonomous Preprocessing Audit & Algorithm Recommendations</p>
+        </div>
+      </div>
+
+      <!-- Results View Content -->
+      <div id="preprocessResultsContainer" class="space-y-6">
+
+        <!-- Header Summary Banner -->
+        <div class="card-base p-6 bg-white border border-gray-200 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="inline-flex items-center space-x-2 text-gray-800 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-md text-xs font-semibold mb-1">
+                <i data-lucide="check" class="w-3.5 h-3.5 text-gray-700"></i>
+                <span>Data Preprocessed & Model-Ready</span>
+              </div>
+              <h3 class="text-base font-bold text-gray-900" id="preprocessResultFilename">model_ready_dataset.csv</h3>
+              <p class="text-xs text-gray-500" id="preprocessResultSubtitle">Task: Classification | Target: Churn</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="downloadPreprocessedCSV()" class="px-4 py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold flex items-center space-x-2 shadow-xs transition">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Download Model-Ready CSV</span>
+              </button>
+              <button type="button" onclick="openPreprocessedInVisualizer()" class="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-xs font-semibold flex items-center space-x-2 transition">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                <span>Open in Visualizer →</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Before vs After Transformation Metrics Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-gray-100">
+            <div class="bg-gray-50 rounded-lg p-3.5 border border-gray-100">
+              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider block mb-1">Health Score</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-lg font-bold text-gray-900" id="metricScoreAfter">100/100</span>
+                <span class="text-xs font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded" id="metricScoreChange">+32%</span>
+              </div>
+              <span class="text-[10px] text-gray-400" id="metricScoreBefore">Was 68/100</span>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-3.5 border border-gray-100">
+              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider block mb-1">Missing Nulls</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-lg font-bold text-gray-900" id="metricNullsAfter">0 (0.0%)</span>
+              </div>
+              <span class="text-[10px] text-gray-400" id="metricNullsBefore">Was 142 (3.1%)</span>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-3.5 border border-gray-100">
+              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider block mb-1">Tukey Outliers</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-lg font-bold text-gray-900" id="metricOutliersCapped">38 Capped</span>
+              </div>
+              <span class="text-[10px] text-gray-400">Winsorized at 1.5×IQR</span>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-3.5 border border-gray-100">
+              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider block mb-1">Dimensions</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-lg font-bold text-gray-900" id="metricShapeAfter">1,000 × 10</span>
+              </div>
+              <span class="text-[10px] text-gray-400" id="metricColsDropped">1 noisy column removed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Engineering Actions Log -->
+        <div class="card-base p-6 bg-white border border-gray-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center space-x-2">
+              <i data-lucide="wrench" class="w-4 h-4 text-gray-500"></i>
+              <span>Data Engineering Actions Executed</span>
+            </h4>
+            <span class="text-[11px] text-gray-400 font-mono" id="actionsCountBadge">5 operations</span>
+          </div>
+          <div id="preprocessActionsList" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Machine Learning Model Recommendations -->
+        <div class="card-base p-6 bg-white border border-gray-200 space-y-5">
+          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <div>
+              <h4 class="text-sm font-bold text-gray-900 flex items-center space-x-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-gray-700"></i>
+                <span>Machine Learning Algorithm Recommendations</span>
+              </h4>
+              <p class="text-xs text-gray-500 mt-0.5">Tailored predictive models suited for your preprocessed dataset structure</p>
+            </div>
+            <span class="px-2.5 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-md" id="mlTaskBadge">Classification</span>
+          </div>
+
+          <!-- Model Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="mlModelCardsGrid">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Strategy & Production Guidance -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 space-y-2">
+              <span class="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <i data-lucide="target" class="w-3.5 h-3.5 text-gray-500"></i>
+                <span>Recommended Validation & Metrics</span>
+              </span>
+              <div class="text-xs text-gray-600 font-medium" id="mlValidationStrategy">5-Fold Stratified K-Fold Cross-Validation</div>
+              <div class="flex flex-wrap gap-1.5 pt-1" id="mlRecommendedMetrics">
+                <!-- Badges -->
+              </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 space-y-2">
+              <span class="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-gray-500"></i>
+                <span>Feature Engineering & Tuning Tips</span>
+              </span>
+              <ul class="text-xs text-gray-600 space-y-1.5 list-disc list-inside" id="mlFeatureTips">
+                <!-- Tips -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- FULL-PAGE FEATURE 4: DEDICATED USER PROFILE & HISTORY     -->
+    <!-- ========================================================= -->
+    <section id="fullPageProfileSection" class="hidden max-w-5xl mx-auto py-6 space-y-6">
+      
+      <!-- Header bar with Back button & Sign Out -->
+      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+        <button type="button" onclick="returnToHome()" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-2xs">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to Home</span>
+        </button>
+        <div class="flex items-center space-x-3">
+          <div class="text-right hidden sm:block">
+            <h2 class="text-base font-bold text-gray-900">User Profile & Analysis History</h2>
+            <p class="text-xs text-gray-500">Manage credentials & explore previous audits</p>
+          </div>
+          <button type="button" onclick="handleSignOut()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-semibold text-red-700 transition shadow-2xs">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Profile & Account Card -->
+      <div class="card-base p-6 sm:p-8 bg-white border border-gray-200 space-y-6">
+        
+        <div class="flex flex-col md:flex-row items-start gap-6">
+          
+          <!-- Avatar with Change Photo Button -->
+          <div class="flex flex-col items-center space-y-3 sm:space-y-4 shrink-0 mx-auto md:mx-0">
+            <div class="relative group">
+              <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-gray-100 bg-white flex items-center justify-center overflow-hidden shadow-sm">
+                <img id="fullProfileAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar">
+                <div id="fullProfileAvatarInitials" class="w-full h-full bg-gray-900 text-white flex items-center justify-center text-3xl font-bold">U</div>
+              </div>
+              <input type="file" id="fullProfileAvatarFileInput" accept="image/*" onchange="handleFullProfileAvatarSelected(event)" class="hidden">
+              <button type="button" onclick="document.getElementById('fullProfileAvatarFileInput').click()" class="absolute inset-0 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition text-xs font-medium backdrop-blur-2xs cursor-pointer">
+                <i data-lucide="camera" class="w-5 h-5 mb-1"></i>
+                <span>Change Photo</span>
+              </button>
+            </div>
+            <button type="button" onclick="document.getElementById('fullProfileAvatarFileInput').click()" class="text-xs font-medium text-gray-600 hover:text-gray-900 flex items-center space-x-1.5">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Upload Picture</span>
+            </button>
+          </div>
+
+          <!-- User Details Form & Identity -->
+          <div class="flex-1 w-full space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h3 id="fullProfileFullName" class="text-xl font-bold text-gray-900">User Name</h3>
+                  <span id="fullProfileRoleBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">Working Professional</span>
+                </div>
+                <p id="fullProfileUsername" class="text-xs text-gray-500 font-mono mt-0.5">@username</p>
+              </div>
+              <div class="text-xs text-gray-500 font-mono bg-gray-50 px-2.5 py-1 rounded border border-gray-200 inline-block truncate max-w-full" id="fullProfileEmail">user@example.com</div>
+            </div>
+
+            <!-- Profile Edit Fields Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">First Name</label>
+                <input type="text" id="fullEditFirstNameInput" placeholder="First name" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Last Name</label>
+                <input type="text" id="fullEditLastNameInput" placeholder="Last name" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Occupation & Role</label>
+                <select id="fullEditOccupationSelect" class="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-gray-900">
+                  <option value="Working Professional">💼 Working Professional</option>
+                  <option value="Data Scientist / ML Engineer">🧠 Data Scientist / ML Engineer</option>
+                  <option value="Data Analyst / BI Specialist">📊 Data Analyst / BI Specialist</option>
+                  <option value="Software Engineer">💻 Software Engineer</option>
+                  <option value="Student">🎓 Student</option>
+                  <option value="Teacher / Academician">👨‍🏫 Teacher / Academician</option>
+                  <option value="Researcher">🔬 Researcher</option>
+                  <option value="Other">✨ Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Account ID</label>
+                <input type="text" id="fullProfileUid" readonly class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg bg-gray-50 text-gray-500 font-mono select-all">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span id="fullProfileUpdateStatus" class="text-xs text-green-600 font-medium hidden">Changes saved successfully!</span>
+              <button type="button" onclick="handleSaveFullProfileChanges()" id="saveProfileBtn" class="ml-auto py-2 px-5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs flex items-center space-x-1.5">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Save Profile Changes</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- User Stats Summary Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="card-base p-4 bg-white border border-gray-200">
+          <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Datasets Analyzed</div>
+          <div class="text-2xl font-bold text-gray-900" id="statDatasetsCount">0</div>
+          <div class="text-[10px] text-gray-400 mt-0.5">Recorded in Cloud</div>
+        </div>
+
+        <div class="card-base p-4 bg-white border border-gray-200">
+          <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Avg Cleanliness</div>
+          <div class="text-2xl font-bold text-gray-900" id="statAvgCleanliness">100/100</div>
+          <div class="text-[10px] text-gray-500 mt-0.5">High Quality Signal</div>
+        </div>
+
+        <div class="card-base p-4 bg-white border border-gray-200">
+          <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Records</div>
+          <div class="text-2xl font-bold text-gray-900" id="statTotalRecords">0</div>
+          <div class="text-[10px] text-gray-400 mt-0.5">Data Rows Processed</div>
+        </div>
+
+        <div class="card-base p-4 bg-white border border-gray-200">
+          <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cloud Sync</div>
+          <div class="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-700 mr-1.5"></span>
+              Live Sync
+            </span>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-1">Firestore Encrypted Store</div>
+        </div>
+      </div>
+
+      <!-- Full-Width Analysis History Section -->
+      <div class="card-base p-6 sm:p-8 bg-white border border-gray-200 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-900 flex items-center space-x-2">
+              <i data-lucide="history" class="w-4 h-4 text-gray-600"></i>
+              <span>Dataset Analysis History</span>
+            </h3>
+            <p class="text-xs text-gray-500 mt-0.5">Complete record of your exploratory data audits and machine learning preparations</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="loadUserAnalysisHistory()" class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center space-x-1.5 transition shadow-2xs">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Refresh History</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- History List Container -->
+        <div id="fullProfileHistoryListContainer" class="space-y-3">
+          <div class="text-center py-10 text-xs text-gray-400">Loading analysis history...</div>
         </div>
       </div>
 
@@ -654,119 +1231,6 @@
   </footer>
 
   <!-- ========================================================= -->
-  <!-- USER PROFILE & ANALYSIS HISTORY MODAL                     -->
-  <!-- ========================================================= -->
-  <div id="profileHistoryModal" role="dialog" aria-modal="true" aria-labelledby="profileHistoryModalTitle" class="modal-overlay hidden">
-    <div class="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
-      
-      <!-- Modal Header -->
-      <div class="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700 flex-shrink-0">
-            <i data-lucide="user" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 id="profileHistoryModalTitle" class="text-sm font-bold text-gray-900">User Profile & Analysis History</h3>
-            <p class="text-[11px] text-gray-500">Manage your account and view previous dataset investigations</p>
-          </div>
-        </div>
-        <button onclick="closeProfileHistoryModal()" aria-label="Close profile and history modal" class="text-gray-400 hover:text-gray-600 transition p-1">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
-        
-        <!-- Profile & Avatar Edit Section -->
-        <div class="card-base p-3.5 sm:p-4 bg-gray-50/50">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-700">Profile Details</h4>
-            <span id="profileRoleBadge" class="text-xs text-gray-500 font-medium">Professional</span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-            <!-- Avatar with Change Overlay -->
-            <div class="relative group">
-              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center overflow-hidden shadow-xs flex-shrink-0">
-                <img id="profileModalAvatarImg" class="w-full h-full object-cover hidden" alt="Avatar">
-                <div id="profileModalAvatarInitials" class="w-full h-full bg-gray-900 text-white flex items-center justify-center text-xl font-bold">U</div>
-              </div>
-              <input type="file" id="editAvatarFileInput" accept="image/*" onchange="handleEditAvatarSelected(event)" class="hidden">
-              <button type="button" onclick="document.getElementById('editAvatarFileInput').click()" class="absolute inset-0 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition text-[10px] font-medium backdrop-blur-2xs">
-                <i data-lucide="camera" class="w-4 h-4 mb-0.5"></i>
-                <span>Change</span>
-              </button>
-            </div>
-
-            <!-- Profile Info Form -->
-            <div class="flex-1 space-y-2 text-center sm:text-left w-full">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-                <div>
-                  <h3 id="profileModalFullName" class="text-sm sm:text-base font-bold text-gray-900">User Name</h3>
-                  <p id="profileModalUsername" class="text-xs text-gray-500 font-mono">@username</p>
-                </div>
-                <div class="text-xs text-gray-500 font-mono truncate max-w-full" id="profileModalEmail">user@example.com</div>
-              </div>
-
-              <!-- Quick Edit Occupation & Name -->
-              <div class="pt-2 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div>
-                  <label class="block text-[11px] font-medium text-gray-500 mb-0.5">Occupation</label>
-                  <select id="editOccupationSelect" onchange="handleUpdateOccupation(event)" class="w-full px-2 py-1 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-gray-900">
-                    <option value="Working Professional">💼 Working Professional</option>
-                    <option value="Student">🎓 Student</option>
-                    <option value="Teacher / Academician">👨‍🏫 Teacher / Academic</option>
-                    <option value="Analyst / Consultant">📊 Analyst / Consultant</option>
-                    <option value="Other">✨ Other</option>
-                  </select>
-                </div>
-                <div class="flex items-end">
-                  <button type="button" onclick="document.getElementById('editAvatarFileInput').click()" class="w-full py-1 px-2.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-xs font-medium text-gray-700 flex items-center justify-center space-x-1.5 shadow-2xs">
-                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                    <span>Upload New Photo</span>
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Analysis History Section -->
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-700">Analysis History</h4>
-              <p class="text-[11px] text-gray-500">Datasets analyzed by your account</p>
-            </div>
-            <button onclick="loadUserAnalysisHistory()" class="text-xs text-gray-600 hover:text-gray-900 flex items-center space-x-1 font-medium">
-              <i data-lucide="refresh-cw" class="w-3 h-3"></i>
-              <span>Refresh</span>
-            </button>
-          </div>
-
-          <!-- History List Container -->
-          <div id="historyListContainer" class="space-y-2">
-            <!-- Loaded dynamically from Firestore -->
-            <div class="text-center py-6 text-xs text-gray-400">Loading analysis history...</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Modal Footer -->
-      <div class="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-        <span class="text-[11px] text-gray-500">QUBRIX Cloud Sync</span>
-        <button onclick="closeProfileHistoryModal()" class="px-4 py-1.5 rounded bg-gray-900 hover:bg-black text-white text-xs font-medium transition shadow-2xs">
-          Close
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
   <!-- AUTHENTICATION MODAL (SIGN IN / CREATE ACCOUNT)           -->
   <!-- ========================================================= -->
   <div id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" class="modal-overlay hidden">
@@ -940,10 +1404,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-auth.js"></script>
+  <script src="firebase-auth.js?v=2.1"></script>
 
   <!-- Vercel Web Analytics -->
   <script defer src="/_vercel/insights/script.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>

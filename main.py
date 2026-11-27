@@ -7,9 +7,10 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Optional
-
+from typing import Optional, List
 from analytics import analyze_dataset
+from ai_synthesizer import synthesize_multiple_files
+from auto_preprocessor import clean_and_preprocess_dataset
 
 warnings.filterwarnings("ignore")
 
@@ -178,6 +179,129 @@ def reanalyze(target_col: str = Form(...)):
         "filename": current_session["filename"],
         "data": analysis
     }
+
+@app.post("/api/synthesize")
+async def synthesize_file(
+    files: List[UploadFile] = File(...),
+    prompt: Optional[str] = Form(""),
+    auto_visualize: Optional[bool] = Form(True)
+):
+    """
+    Multi-Format Dataset Synthesizer.
+    Takes N number of files in ANY format (PDF, JSON, Excel, TXT, CSV) + user prompt,
+    synthesizes and combines them into a single clean model-ready CSV dataset.
+    """
+    try:
+        if not files:
+            raise HTTPException(status_code=400, detail="No files uploaded.")
+
+        files_data = []
+        for f in files:
+            content = await f.read()
+            if content:
+                files_data.append((content, f.filename))
+
+        if not files_data:
+            raise HTTPException(status_code=400, detail="All uploaded files are empty.")
+
+        # Run multi-file synthesizer
+        df = synthesize_multiple_files(files_data, prompt or "")
+
+        if df.empty:
+            raise HTTPException(status_code=400, detail="Synthesized dataset contains no records.")
+
+        # Convert to CSV string for direct download
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_string = csv_buffer.getvalue()
+
+        if len(files_data) == 1:
+            clean_filename = f"synthesized_{os.path.splitext(files_data[0][1])[0]}.csv"
+        else:
+            clean_filename = f"unified_dataset_{len(files_data)}_files.csv"
+
+        # If user wants instant visualization
+        analysis = None
+        if auto_visualize:
+            analysis = analyze_dataset(df)
+            current_session["df"] = df
+            current_session["filename"] = clean_filename
+            current_session["last_analysis"] = analysis
+
+        return {
+            "success": True,
+            "filename": clean_filename,
+            "file_count": len(files_data),
+            "csv_data": csv_string,
+            "shape": {"rows": int(len(df)), "columns": int(len(df.columns))},
+            "columns": list(df.columns),
+            "data": analysis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Synthesis failed: {str(e)}")
+
+@app.post("/api/preprocess")
+async def preprocess_dataset_endpoint(
+    file: Optional[UploadFile] = File(None),
+    target_col: Optional[str] = Form(None),
+    use_sample: Optional[str] = Form(None)
+):
+    """
+    Feature 3: Autonomous Data Scientist & Auto-Preprocessing Engine.
+    Cleans raw CSV end-to-end, imputes missing values, caps Tukey outliers,
+    drops leakage/ID columns, and recommends optimal Machine Learning models.
+    """
+    try:
+        if use_sample:
+            df = generate_sample_dataset(use_sample)
+            fname = f"sample_{use_sample}.csv"
+        elif file:
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+            try:
+                df = pd.read_csv(io.BytesIO(content))
+            except Exception:
+                df = pd.read_csv(io.BytesIO(content), sep=None, engine='python')
+            fname = file.filename
+        else:
+            raise HTTPException(status_code=400, detail="Please upload a CSV or select a demo dataset.")
+
+        if df.empty:
+            raise HTTPException(status_code=400, detail="The dataset contains no records.")
+
+        # Run Auto-Preprocessing & ML Advisor
+        result = clean_and_preprocess_dataset(df, target_col=target_col)
+
+        cleaned_df = result["cleaned_df"]
+        csv_buffer = io.StringIO()
+        cleaned_df.to_csv(csv_buffer, index=False)
+        clean_csv_string = csv_buffer.getvalue()
+
+        clean_fname = f"model_ready_{os.path.splitext(fname)[0]}.csv"
+
+        # Also run QUBRIX EDA on the newly cleaned dataset
+        cleaned_analysis = analyze_dataset(cleaned_df, target_col=result["target_col"])
+        current_session["df"] = cleaned_df
+        current_session["filename"] = clean_fname
+        current_session["last_analysis"] = cleaned_analysis
+
+        return {
+            "success": True,
+            "original_filename": fname,
+            "cleaned_filename": clean_fname,
+            "csv_data": clean_csv_string,
+            "target_col": result["target_col"],
+            "ml_task": result["ml_task"],
+            "task_detail": result["task_detail"],
+            "audit_before": result["audit_before"],
+            "audit_after": result["audit_after"],
+            "actions_taken": result["actions_taken"],
+            "ml_recommendations": result["ml_recommendations"],
+            "eda_data": cleaned_analysis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Preprocessing failed: {str(e)}")
 
 @app.get("/api/sample/{sample_name}")
 def load_sample(sample_name: str):

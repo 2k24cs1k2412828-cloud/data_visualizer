@@ -394,17 +394,20 @@ def analyze_dataset(df: pd.DataFrame, target_col: Optional[str] = None) -> Dict[
             scatter_pairs_to_use.append((p["feature_1"], p["feature_2"], p["correlation"]))
     elif len(num_cols) >= 2:
         for i in range(min(4, len(num_cols) - 1)):
-            scatter_pairs_to_use.append((num_cols[i], num_cols[i+1], round(float(df[num_cols[i]].corr(df[num_cols[i+1]])), 3)))
+            raw_c = df[num_cols[i]].corr(df[num_cols[i+1]])
+            clean_c = round(float(raw_c), 3) if pd.notna(raw_c) else 0.0
+            scatter_pairs_to_use.append((num_cols[i], num_cols[i+1], clean_c))
 
     for f1, f2, corr in scatter_pairs_to_use:
         sub = df[[f1, f2]].dropna()
         if len(sub) > 250:
             sub = sub.sample(250, random_state=42)
+        valid_corr = 0.0 if (corr is None or pd.isna(corr)) else corr
         scatter_data[f"{f1} vs {f2}"] = {
             "x_col": f1,
             "y_col": f2,
             "points": [{"x": round(float(r[f1]), 3), "y": round(float(r[f2]), 3)} for _, r in sub.iterrows()],
-            "correlation": corr
+            "correlation": valid_corr
         }
     viz_data["scatter_plots"] = scatter_data
 
@@ -506,7 +509,18 @@ def analyze_dataset(df: pd.DataFrame, target_col: Optional[str] = None) -> Dict[
             
     viz_data["timeseries"] = timeseries_data
 
-    return {
+    def sanitize_floats(obj):
+        if isinstance(obj, float):
+            if np.isnan(obj) or np.isinf(obj):
+                return 0.0
+            return obj
+        elif isinstance(obj, dict):
+            return {k: sanitize_floats(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [sanitize_floats(v) for v in obj]
+        return obj
+
+    final_payload = {
         "target_col": target_col,
         "all_columns": columns,
         "numerical_columns": num_cols,
@@ -530,3 +544,5 @@ def analyze_dataset(df: pd.DataFrame, target_col: Optional[str] = None) -> Dict[
         "visualizations": viz_data,
         "raw_preview": df.head(15).replace({np.nan: None}).to_dict(orient="records")
     }
+
+    return sanitize_floats(final_payload)
